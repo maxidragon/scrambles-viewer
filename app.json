@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.maxidragon.scrambles.viewer"
+      "bundleIdentifier": "com.maxidragon.scrambles.viewer",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.maxidragon.scrambles.viewer",
@@ -30,8 +33,12 @@
       [
         "expo-build-properties",
         {
-          "android": { "newArchEnabled": false },
-          "ios": { "newArchEnabled": false }
+          "android": {
+            "newArchEnabled": false
+          },
+          "ios": {
+            "newArchEnabled": false
+          }
         }
       ],
       [

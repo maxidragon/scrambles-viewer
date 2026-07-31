@@ -65,14 +65,16 @@ function matchSet(filename: string, sets: ScrambleSet[]): number {
   if (!roundM) return -1;
   const roundNum = roundM[1];
 
-  const lowerName = nameNoExt.toLowerCase();
+  // Extract the event name portion from the filename: everything before " Round N"
+  const fileEventPart = nameNoExt.replace(/\s+round\s+\d+.*/i, '').toLowerCase().trim();
 
   return sets.findIndex(s => {
     if (s.setLetter !== letter) return false;
     const codeM = /-r(\d+)$/.exec(s.activityCode);
     if (codeM?.[1] !== roundNum) return false;
     const eventPart = s.name.split(' Round ')[0].toLowerCase();
-    return lowerName.includes(eventPart);
+    // Exact match, or the filename has a competition-name prefix before the event name
+    return fileEventPart === eventPart || fileEventPart.endsWith(' ' + eventPart);
   });
 }
 

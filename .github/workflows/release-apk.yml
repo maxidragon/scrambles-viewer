@@ -4,14 +4,30 @@ on:
   release:
     types: [published]
 
+# Two releases published close together would race on the version-bump push.
+concurrency:
+  group: release-apk
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout repo
+      - name: Checkout release tag
         uses: actions/checkout@v4
+
+      - name: Read version from release tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG' is not a version like v1.2.3"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -29,16 +45,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Set app version from release tag
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          VERSION="${TAG#v}"
-          node -e "
-            const fs = require('fs');
-            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
-            app.expo.version = '$VERSION';
-            fs.writeFileSync('app.json', JSON.stringify(app, null, 2));
-            console.log('Set expo.version to $VERSION');
-          "
+        run: node scripts/set-app-version.js "${{ steps.version.outputs.version }}"
 
       - name: Build APK on EAS
         run: eas build --platform android --profile preview --non-interactive --wait --json > build-output.json
@@ -59,3 +66,30 @@ jobs:
           files: app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Checked out only after the build so this working copy never ends up in
+      # the archive EAS uploads.
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: default-branch
+          fetch-depth: 0
+
+      - name: Commit version bump to default branch
+        working-directory: default-branch
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          node ../scripts/set-app-version.js "$VERSION"
+          if git diff --quiet -- app.json; then
+            echo "$BRANCH is already at $VERSION — nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.json
+          git commit -m "chore: set app version to $VERSION [skip ci]"
+          git pull --rebase origin "$BRANCH"
+          git push origin "HEAD:$BRANCH"

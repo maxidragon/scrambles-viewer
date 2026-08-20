@@ -52,9 +52,24 @@ Preview APK (EAS cloud build, `preview` profile in `eas.json`):
 npx eas-cli build --profile preview --platform android
 ```
 
-Publishing a GitHub release runs `.github/workflows/release-apk.yml`, which sets
-`expo.version` from the release tag, builds the APK on EAS, and attaches it to the
-release.
+### Releases
+
+Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-apk.yml`:
+
+1. reads the version from the tag and writes it to `expo.version`,
+2. builds the APK on EAS and attaches it to the release,
+3. commits the same version back to the default branch, so `app.json` in the repo
+   always reflects the latest release.
+
+The tag is the single source of truth for the user-facing version — you don't need to
+bump `app.json` by hand before tagging. `android.versionCode` is not stored in the repo
+at all: `eas.json` sets `appVersionSource: "remote"`, so EAS increments it per build.
+
+To set the version locally anyway:
+
+```bash
+node scripts/set-app-version.js 1.2.3
+```
 
 ## Project structure
 
@@ -71,6 +86,8 @@ src/
     pdfMatching.ts        scramble PDF filename -> scramble set
     zipHandler.ts         ZIP picking, extraction, local PDF storage
     eventNames.ts         event ids -> display names and PDF filename spellings
+scripts/
+  set-app-version.js      writes expo.version into app.json (used by the release workflow)
 ```
 
 ## How PDF matching works

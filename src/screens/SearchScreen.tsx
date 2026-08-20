@@ -99,6 +99,11 @@ export function SearchScreen() {
         data={results}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.list}
+        // The search input is autoFocused, so the keyboard is up whenever results
+        // are on screen. Without this the first tap on a result is swallowed by
+        // dismissing the keyboard and the card needs tapping twice.
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}

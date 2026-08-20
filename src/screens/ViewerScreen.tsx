@@ -212,6 +212,7 @@ export function ViewerScreen() {
                 key={pdfKey}
                 source={{ uri: currentSet.pdfPath }}
                 password={currentPassword}
+                fitPolicy={0}
                 style={styles.pdf}
                 onLoadComplete={n => { setPageCount(n); setPasswordError(false); }}
                 onError={handlePdfError}

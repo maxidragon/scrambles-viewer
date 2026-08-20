@@ -10,13 +10,27 @@ interface State {
   sets: ScrambleSet[];
   /** In-memory only — cleared every time the viewer is exited. */
   passwords: Record<string, string>;
+  /**
+   * When each set was last closed, in epoch ms. A set that is currently open has
+   * no entry. Used to re-lock sets that were left open too long ago.
+   */
+  closedAt: Record<string, number>;
   loading: boolean;
   setCompetition(id: string, name: string, wcif: WCIF): Promise<void>;
   syncWCIF(wcif: WCIF): Promise<void>;
   reset(): Promise<void>;
   updateSets(sets: ScrambleSet[]): void;
   setSetPassword(setName: string, password: string): void;
+  markSetOpened(setName: string): void;
+  markSetClosed(setName: string): void;
+  lockSet(setName: string): void;
   clearPasswords(): void;
+}
+
+function omit<T>(record: Record<string, T>, key: string): Record<string, T> {
+  if (!(key in record)) return record;
+  const { [key]: _removed, ...rest } = record;
+  return rest;
 }
 
 const Ctx = createContext<State | null>(null);
@@ -34,6 +48,7 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
   const [wcif, setWcif] = useState<WCIF | null>(null);
   const [sets, setSets] = useState<ScrambleSet[]>([]);
   const [passwords, setPasswords] = useState<Record<string, string>>({});
+  const [closedAt, setClosedAt] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,6 +73,7 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
     setWcif(newWcif);
     setSets(newSets);
     setPasswords({});
+    setClosedAt({});
     await AsyncStorage.multiSet([
       [K.ID, id],
       [K.NAME, name],
@@ -86,6 +102,7 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
     setWcif(null);
     setSets([]);
     setPasswords({});
+    setClosedAt({});
     await AsyncStorage.multiRemove([K.ID, K.NAME, K.WCIF, K.SETS]);
   };
 
@@ -96,15 +113,34 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
 
   const setSetPassword = useCallback((setName: string, password: string) => {
     setPasswords(prev => ({ ...prev, [setName]: password }));
+    // Unlocking counts as opening the set — the lock timer starts when it is closed.
+    setClosedAt(prev => omit(prev, setName));
   }, []);
 
-  const clearPasswords = useCallback(() => setPasswords({}), []);
+  const markSetOpened = useCallback((setName: string) => {
+    setClosedAt(prev => omit(prev, setName));
+  }, []);
+
+  const markSetClosed = useCallback((setName: string) => {
+    setClosedAt(prev => ({ ...prev, [setName]: Date.now() }));
+  }, []);
+
+  const lockSet = useCallback((setName: string) => {
+    setPasswords(prev => omit(prev, setName));
+    setClosedAt(prev => omit(prev, setName));
+  }, []);
+
+  const clearPasswords = useCallback(() => {
+    setPasswords({});
+    setClosedAt({});
+  }, []);
 
   return (
     <Ctx.Provider
       value={{
-        competitionId, competitionName, wcif, sets, passwords, loading,
-        setCompetition, syncWCIF, reset, updateSets, setSetPassword, clearPasswords,
+        competitionId, competitionName, wcif, sets, passwords, closedAt, loading,
+        setCompetition, syncWCIF, reset, updateSets, setSetPassword,
+        markSetOpened, markSetClosed, lockSet, clearPasswords,
       }}
     >
       {children}

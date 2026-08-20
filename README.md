@@ -24,6 +24,11 @@ Built with Expo (React Native) for Android and iOS.
 - **Password-protected viewing** — each set's PDF password is prompted for on open.
   Passwords are held in memory only and cleared when the viewer is closed; they are
   never written to disk.
+- **Sets re-lock after 30 minutes** — moving to another set closes the one you left and
+  starts its lock timer. Come back within 30 minutes and it is still open; come back
+  later and the password is required again. The timer only runs while a set is closed,
+  and it restarts each time you leave the set, so a set you keep returning to does not
+  silently stay unlocked all day.
 - **Viewer built for the venue** — swipe between sets, landscape support, and the PDF
   opens zoomed in so scrambles are readable at arm's length.
 - **Offline after import** — the WCIF, the set list, and the extracted PDFs are stored
@@ -86,6 +91,7 @@ src/
     pdfMatching.ts        scramble PDF filename -> scramble set
     zipHandler.ts         ZIP picking, extraction, local PDF storage
     eventNames.ts         event ids -> display names and PDF filename spellings
+    setLock.ts            when a closed set re-locks and needs its password again
 scripts/
   set-app-version.js      writes expo.version into app.json (used by the release workflow)
 ```

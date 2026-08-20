@@ -14,6 +14,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Pdf from 'react-native-pdf';
 import { useCompetition } from '../store/CompetitionContext';
 import { PasswordModal } from '../components/PasswordModal';
+import { getSetLockState } from '../utils/setLock';
 import { RootStackParamList } from '../navigation';
 
 type ViewerRoute = RouteProp<RootStackParamList, 'Viewer'>;
@@ -25,7 +26,10 @@ export function ViewerScreen() {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
-  const { sets, passwords, setSetPassword, clearPasswords } = useCompetition();
+  const {
+    sets, passwords, closedAt,
+    setSetPassword, markSetOpened, markSetClosed, lockSet, clearPasswords,
+  } = useCompetition();
 
   const [currentIndex, setCurrentIndex] = useState(route.params.initialIndex);
   const [pageCount, setPageCount] = useState(0);
@@ -39,6 +43,7 @@ export function ViewerScreen() {
   const [pdfReady, setPdfReady] = useState(false);
   const [pdfScale, setPdfScale] = useState(1);
   const remountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevIndexRef = useRef(currentIndex);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
 
@@ -70,15 +75,31 @@ export function ViewerScreen() {
     setPasswordError(false);
     setPdfScale(1);
 
-    if (currentSet?.pdfPath && !passwords[currentSet.name]) {
-      // No saved password — prompt the user before showing the PDF
+    // Moving to another set closes the one we left — that starts its lock timer.
+    const prevSet = sets[prevIndexRef.current];
+    if (prevIndexRef.current !== currentIndex && prevSet) markSetClosed(prevSet.name);
+    prevIndexRef.current = currentIndex;
+
+    if (!currentSet?.pdfPath) {
+      setShowPasswordModal(false);
+      return;
+    }
+
+    const lockState = getSetLockState(
+      Boolean(passwords[currentSet.name]),
+      closedAt[currentSet.name],
+    );
+    if (lockState === 'expired') {
+      // Closed for too long — forget the password and ask for it again.
+      lockSet(currentSet.name);
       setShowPasswordModal(true);
-    } else if (currentSet?.pdfPath && passwords[currentSet.name]) {
-      // Password already known — show PDF immediately
+    } else if (lockState === 'unlocked') {
+      // Still unlocked — show the PDF and stop the timer while it is open.
+      markSetOpened(currentSet.name);
       setShowPasswordModal(false);
       setPdfReady(true);
     } else {
-      setShowPasswordModal(false);
+      setShowPasswordModal(true);
     }
   }, [currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Scrambles Viewer" width="128">
+</p>
+
 # Scrambles Viewer
 
 A mobile app for viewing WCA scramble PDFs at a competition. Pick a competition,
@@ -55,6 +59,7 @@ release.
 ## Project structure
 
 ```
+assets/                   app icon, adaptive icon, favicon, logo (PNG + SVG source)
 src/
   api/wca.ts              WCA API client (competition search, WCIF fetch)
   store/                  competition context — persistence + in-memory passwords

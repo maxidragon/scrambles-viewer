@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+  <title>scrambles-viewer</title>
+  <rect width="260" height="260" rx="58" fill="#E6F1FB"/>
+  <path d="M84,110 v-26 a46,46 0 0 1 92,0 v26" fill="none" stroke="#0C447C" stroke-width="24" stroke-linecap="round"/>
+  <rect x="55" y="84" width="46" height="46" rx="8" fill="#185FA5"/>
+  <rect x="107" y="84" width="46" height="46" rx="8" fill="#EF9F27"/>
+  <rect x="159" y="84" width="46" height="46" rx="8" fill="#1D9E75"/>
+  <rect x="55" y="136" width="46" height="46" rx="8" fill="#E24B4A"/>
+  <rect x="107" y="136" width="46" height="46" rx="8" fill="#0C447C"/>
+  <rect x="159" y="136" width="46" height="46" rx="8" fill="#639922"/>
+  <rect x="55" y="188" width="46" height="46" rx="8" fill="#EF9F27"/>
+  <rect x="107" y="188" width="46" height="46" rx="8" fill="#1D9E75"/>
+  <rect x="159" y="188" width="46" height="46" rx="8" fill="#185FA5"/>
+  <circle cx="130" cy="153" r="7" fill="#E6F1FB"/>
+  <path d="M125.5,158 h9 l2.5,11 h-14 z" fill="#E6F1FB"/>
+</svg>

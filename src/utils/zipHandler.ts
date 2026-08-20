@@ -2,6 +2,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import JSZip from 'jszip';
 import { ScrambleSet } from '../types/wcif';
+import { matchSet } from './pdfMatching';
 
 const PDF_DIR = FileSystem.documentDirectory + 'scramble_pdfs/';
 
@@ -52,30 +53,6 @@ export async function pickAndExtractZip(
   );
 
   return { sets: updated, matched, total: pdfEntries.length };
-}
-
-function matchSet(filename: string, sets: ScrambleSet[]): number {
-  const nameNoExt = filename.replace(/\.pdf$/i, '');
-
-  const setLetterM = /\bSet\s+([A-Z])\b/i.exec(nameNoExt);
-  if (!setLetterM) return -1;
-  const letter = setLetterM[1].toUpperCase();
-
-  const roundM = /\bRound\s+(\d+)\b/i.exec(nameNoExt);
-  if (!roundM) return -1;
-  const roundNum = roundM[1];
-
-  // Extract the event name portion from the filename: everything before " Round N"
-  const fileEventPart = nameNoExt.replace(/\s+round\s+\d+.*/i, '').toLowerCase().trim();
-
-  return sets.findIndex(s => {
-    if (s.setLetter !== letter) return false;
-    const codeM = /-r(\d+)$/.exec(s.activityCode);
-    if (codeM?.[1] !== roundNum) return false;
-    const eventPart = s.name.split(' Round ')[0].toLowerCase();
-    // Exact match, or the filename has a competition-name prefix before the event name
-    return fileEventPart === eventPart || fileEventPart.endsWith(' ' + eventPart);
-  });
 }
 
 export async function clearPdfs(): Promise<void> {

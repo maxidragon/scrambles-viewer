@@ -60,5 +60,6 @@ export interface ScrambleSet {
   activityCode: string;
   setLetter: string;
   startTime: string;
+  attemptNumber?: number;
   pdfPath?: string;
 }

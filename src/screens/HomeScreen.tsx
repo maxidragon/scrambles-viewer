@@ -131,7 +131,7 @@ export function HomeScreen() {
     sets.forEach((set, idx) => {
       if (set.activityCode !== currentCode) {
         currentCode = set.activityCode;
-        const roundName = set.name.replace(/ Set [A-Z]$/, '');
+        const roundName = set.name.replace(/ Set [A-Z](?: Attempt \d+)?$/, '');
         currentSection = {
           title: roundName,
           time: formatTime(set.startTime, timezone),

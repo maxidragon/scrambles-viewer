@@ -33,6 +33,9 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Google Play service account key (used by eas submit)
+google-play-service-account.json
+
 # typescript
 *.tsbuildinfo
 

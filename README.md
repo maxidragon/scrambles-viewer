@@ -76,6 +76,19 @@ To set the version locally anyway:
 node scripts/set-app-version.js 1.2.3
 ```
 
+### Google Play
+
+The `production` profile builds an App Bundle and `eas.json` has a matching submit
+profile pointing at the internal track:
+
+```bash
+npx eas-cli build --platform android --profile production --auto-submit
+```
+
+`.github/workflows/play-submit.yml` does the same from CI, manually dispatched.
+[docs/PLAY_STORE.md](docs/PLAY_STORE.md) covers the rest — what the repo already
+satisfies, and the Play Console setup, listing assets, and declarations that are left.
+
 ## Project structure
 
 ```
@@ -94,6 +107,8 @@ src/
     setLock.ts            when a closed set re-locks and needs its password again
 scripts/
   set-app-version.js      writes expo.version into app.json (used by the release workflow)
+docs/
+  PLAY_STORE.md           Google Play release checklist
 ```
 
 ## How PDF matching works
@@ -114,6 +129,26 @@ keeps the alternative spellings per event id.
 
 If a competition's PDFs are named differently and some sets stay unmatched, that alias
 list and the filename regexes are the place to look.
+
+## Support
+
+Scrambles Viewer is free, open source, and built in spare time between competitions.
+If it saved you some hassle at the scrambling table and you'd like to chip in towards
+its development, you can do that here:
+
+- **[GitHub Sponsors](https://github.com/sponsors/maxidragon)**
+
+Everything in the app is free regardless, and the app itself never asks — there is no
+donation prompt, no link, and nothing to dismiss. Asking happens here, on the repo, and
+nowhere else. ([Why](docs/PLAY_STORE.md#6-donations-are-not-in-the-app).)
+
+## Privacy
+
+The app has no accounts, analytics, or ads. The only network calls are to the public WCA
+API; scramble PDFs and passwords never leave the device. See [PRIVACY.md](PRIVACY.md).
+
+Scrambles Viewer is unofficial and not affiliated with or endorsed by the World Cube
+Association.
 
 ## License
 

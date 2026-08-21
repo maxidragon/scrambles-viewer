@@ -24,7 +24,7 @@
         "monochromeImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#E6F1FB"
       },
-      "permissions": [
+      "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ]

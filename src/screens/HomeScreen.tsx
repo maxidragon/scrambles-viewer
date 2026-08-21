@@ -7,10 +7,14 @@ import {
   Alert,
   ActivityIndicator,
   SectionList,
+  Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCompetition } from '../store/CompetitionContext';
+import { useSupportPrompt } from '../hooks/useSupportPrompt';
+import { SupportModal } from '../components/SupportModal';
+import { SUPPORT_AVAILABLE, SUPPORT_URL } from '../config/support';
 import { pickAndExtractZip, clearPdfs } from '../utils/zipHandler';
 import { fetchWCIF } from '../api/wca';
 import { ScrambleSet } from '../types/wcif';
@@ -35,6 +39,8 @@ export function HomeScreen() {
 
   const [syncing, setSyncing] = useState(false);
   const [loadingZip, setLoadingZip] = useState(false);
+
+  const { shouldPrompt, markZipLoaded, dismiss, dontAskAgain } = useSupportPrompt();
 
   const timezone = wcif ? getVenueTimezone(wcif) : 'UTC';
 
@@ -74,6 +80,7 @@ export function HomeScreen() {
     try {
       const { sets: updatedSets, matched, total } = await pickAndExtractZip(sets);
       updateSets(updatedSets);
+      if (total > 0) markZipLoaded();
       Alert.alert('ZIP loaded', `Matched ${matched} of ${total} PDFs to the schedule.`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Unknown error';
@@ -81,7 +88,7 @@ export function HomeScreen() {
     } finally {
       setLoadingZip(false);
     }
-  }, [sets, updateSets]);
+  }, [sets, updateSets, markZipLoaded]);
 
   const handleClearZip = useCallback(() => {
     Alert.alert('Clear PDFs', 'Remove all extracted PDF files?', [
@@ -278,6 +285,17 @@ export function HomeScreen() {
         </View>
       )}
 
+      {SUPPORT_AVAILABLE && (
+        <>
+          <TouchableOpacity
+            style={styles.supportFooter}
+            onPress={() => Linking.openURL(SUPPORT_URL).catch(() => {})}
+          >
+            <Text style={styles.supportFooterText}>Support this app</Text>
+          </TouchableOpacity>
+          <SupportModal visible={shouldPrompt} onDismiss={dismiss} onOptOut={dontAskAgain} />
+        </>
+      )}
     </View>
   );
 }
@@ -355,6 +373,8 @@ const styles = StyleSheet.create({
   lockIndicator: { fontSize: 13 },
   viewHint: { fontSize: 13, color: '#003087', fontWeight: '500' },
   noFile: { fontSize: 12, color: '#bbb' },
+  supportFooter: { paddingVertical: 10, alignItems: 'center' },
+  supportFooterText: { fontSize: 12, color: '#8a94a6' },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   emptyText: { fontSize: 15, color: '#999', textAlign: 'center', lineHeight: 22 },
 });

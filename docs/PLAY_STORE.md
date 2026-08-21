@@ -110,7 +110,48 @@ Metadata policy: no emoji, no ALL CAPS, no "free" / "#1" / "best", and no
 - **Ads** — none.
 - News, financial, health and government declarations — all no.
 
-### 6. One content caution
+### 6. Donations — why they are not in the Play build
+
+Google Play's [Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738)
+requires Google Play Billing for in-app digital transactions and exempts only
+**"tax exempt donations"**. A donation to an individual developer is not tax-exempt, so
+it falls outside that exemption, and in-app links to Patreon / Ko-fi / GitHub Sponsors
+have been enforced against on exactly that basis — StreetComplete, a free open-source app
+much like this one, was rejected for its in-app donation links and had to remove them
+([streetcomplete#3768](https://github.com/streetcomplete/StreetComplete/issues/3768)).
+
+The December 2025 US programs (external content links / alternative billing, from the
+Epic v. Google injunction) do not obviously help: they cover links **to purchase in-app
+digital items**, which a donation is not, they apply to US users only, and from
+1 October 2026 they carry reporting obligations and service fees.
+
+So the support prompt is compiled out of the Play build:
+
+| Build | Profile | `EXPO_PUBLIC_SUPPORT_LINKS` | Donation prompt |
+|---|---|---|---|
+| GitHub release APK | `preview` | `1` + `EXPO_PUBLIC_SUPPORT_URL` | shown |
+| Google Play AAB | `production` | `0`, no URL | absent |
+
+`EXPO_PUBLIC_` variables are inlined by Metro at build time, so this is a compile-time
+switch rather than a runtime setting. Both the flag *and* the URL come from the build
+profile, so the donation URL is never compiled into the Play binary at all — verified by
+exporting both bundles and searching the Hermes string table:
+
+```
+string                         PLAY     APK
+sponsors/maxidragon            0        1
+worldcubeassociation           1        1     (control — app works in both)
+```
+
+`.env` and `.env*.local` are gitignored so a local env file can never reach an EAS build
+and override the profile values.
+
+**If you want donations inside the Play build**, the compliant route is a Google Play
+Billing consumable ("tip jar") product, which means `react-native-iap`, a payments
+profile, and tax setup — and it must not unlock any functionality, or it stops being a
+donation and becomes a paid feature. That is a bigger change than this repo needs today.
+
+### 7. One content caution
 
 The app handles official competition scrambles, so the listing must not imply WCA
 endorsement. Do not use WCA marks in the icon, title, or graphics, and state plainly in

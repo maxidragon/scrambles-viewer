@@ -8,12 +8,19 @@
       "android": {
         "buildType": "apk",
         "autoIncrement": true
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPPORT_LINKS": "1",
+        "EXPO_PUBLIC_SUPPORT_URL": "https://github.com/sponsors/maxidragon"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle",
         "autoIncrement": true
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPPORT_LINKS": "0"
       }
     }
   },

@@ -30,8 +30,7 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files — never committed, so they can never reach an EAS build and
-# override the per-profile env in eas.json (see src/config/support.ts)
+# local env files — never committed, so they can never reach an EAS build
 .env
 .env*.local
 

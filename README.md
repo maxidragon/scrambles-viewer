@@ -98,18 +98,13 @@ src/
   store/                  competition context — persistence + in-memory passwords
   navigation/             stack navigator (Home / Search / Viewer)
   screens/                HomeScreen, SearchScreen, ViewerScreen
-  components/             PasswordModal, SupportModal
-  config/
-    support.ts            donation link flags (compiled out of the Play build)
-  hooks/
-    useSupportPrompt.ts   persisted state for the support prompt
+  components/             PasswordModal
   utils/
     schedule.ts           WCIF schedule -> ordered scramble sets
     pdfMatching.ts        scramble PDF filename -> scramble set
     zipHandler.ts         ZIP picking, extraction, local PDF storage
     eventNames.ts         event ids -> display names and PDF filename spellings
     setLock.ts            when a closed set re-locks and needs its password again
-    supportPrompt.ts      when to ask the user to consider supporting the app
 scripts/
   set-app-version.js      writes expo.version into app.json (used by the release workflow)
 docs/
@@ -135,25 +130,17 @@ keeps the alternative spellings per event id.
 If a competition's PDFs are named differently and some sets stay unmatched, that alias
 list and the filename regexes are the place to look.
 
-## Supporting the app
+## Support
 
-The GitHub-release APK can ask, once you've used it at a couple of competitions, whether
-you'd like to chip in. It never appears in the viewer and stays quiet for 24 hours after
-a ZIP import, so it can't interrupt anyone mid-competition, and `Don't ask again` is
-permanent.
+Scrambles Viewer is free, open source, and built in spare time between competitions.
+If it saved you some hassle at the scrambling table and you'd like to chip in towards
+its development, you can do that here:
 
-The Google Play build has no donation prompt and no donation URL compiled into it at all
-— Play's Payments policy only exempts tax-exempt charity donations, and apps have been
-rejected for linking to Patreon/Ko-fi/GitHub Sponsors. `EXPO_PUBLIC_SUPPORT_LINKS` and
-`EXPO_PUBLIC_SUPPORT_URL` are set per build profile in `eas.json`; see
-[docs/PLAY_STORE.md](docs/PLAY_STORE.md) for the detail.
+- **[GitHub Sponsors](https://github.com/sponsors/maxidragon)**
 
-To run it locally, put the values in `.env.local` (gitignored):
-
-```bash
-EXPO_PUBLIC_SUPPORT_LINKS=1
-EXPO_PUBLIC_SUPPORT_URL=https://github.com/sponsors/maxidragon
-```
+Everything in the app is free regardless, and the app itself never asks — there is no
+donation prompt, no link, and nothing to dismiss. Asking happens here, on the repo, and
+nowhere else. ([Why](docs/PLAY_STORE.md#6-donations-are-not-in-the-app).)
 
 ## Privacy
 

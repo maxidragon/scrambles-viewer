@@ -110,46 +110,41 @@ Metadata policy: no emoji, no ALL CAPS, no "free" / "#1" / "best", and no
 - **Ads** — none.
 - News, financial, health and government declarations — all no.
 
-### 6. Donations — why they are not in the Play build
+### 6. Donations are not in the app
 
-Google Play's [Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738)
+Donation links live in the [repo README](../README.md#support) only. Nothing in the app
+asks for money, links out to a donation page, or mentions sponsorship — and after the
+support prompt was removed the app has **no outbound links at all**, which is the
+simplest possible position to be in at review time.
+
+That is deliberate. Google Play's
+[Payments policy](https://support.google.com/googleplay/android-developer/answer/9858738)
 requires Google Play Billing for in-app digital transactions and exempts only
 **"tax exempt donations"**. A donation to an individual developer is not tax-exempt, so
 it falls outside that exemption, and in-app links to Patreon / Ko-fi / GitHub Sponsors
 have been enforced against on exactly that basis — StreetComplete, a free open-source app
 much like this one, was rejected for its in-app donation links and had to remove them
 ([streetcomplete#3768](https://github.com/streetcomplete/StreetComplete/issues/3768)).
+Notably it was flagged for linking to a *project page that contained* donation info, not
+just a payment page.
 
 The December 2025 US programs (external content links / alternative billing, from the
 Epic v. Google injunction) do not obviously help: they cover links **to purchase in-app
 digital items**, which a donation is not, they apply to US users only, and from
 1 October 2026 they carry reporting obligations and service fees.
 
-So the support prompt is compiled out of the Play build:
+Two things follow for the store listing:
 
-| Build | Profile | `EXPO_PUBLIC_SUPPORT_LINKS` | Donation prompt |
-|---|---|---|---|
-| GitHub release APK | `preview` | `1` + `EXPO_PUBLIC_SUPPORT_URL` | shown |
-| Google Play AAB | `production` | `0`, no URL | absent |
+- **Keep the donation link out of the listing text.** Linking to the GitHub repo is fine
+  and normal for an open-source app, but do not put a sponsor link in the description.
+- The privacy policy URL points at this repo, whose README does contain a sponsor link.
+  That indirection is ordinary and low risk, but it is the reason not to add any further
+  donation signposting on the Play side.
 
-`EXPO_PUBLIC_` variables are inlined by Metro at build time, so this is a compile-time
-switch rather than a runtime setting. Both the flag *and* the URL come from the build
-profile, so the donation URL is never compiled into the Play binary at all — verified by
-exporting both bundles and searching the Hermes string table:
-
-```
-string                         PLAY     APK
-sponsors/maxidragon            0        1
-worldcubeassociation           1        1     (control — app works in both)
-```
-
-`.env` and `.env*.local` are gitignored so a local env file can never reach an EAS build
-and override the profile values.
-
-**If you want donations inside the Play build**, the compliant route is a Google Play
+**If you later want donations inside the app**, the compliant route is a Google Play
 Billing consumable ("tip jar") product, which means `react-native-iap`, a payments
 profile, and tax setup — and it must not unlock any functionality, or it stops being a
-donation and becomes a paid feature. That is a bigger change than this repo needs today.
+donation and becomes a paid feature.
 
 ### 7. One content caution
 

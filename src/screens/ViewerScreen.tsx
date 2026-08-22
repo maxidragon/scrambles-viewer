@@ -144,14 +144,16 @@ export function ViewerScreen() {
     });
   }, [currentIndex, sets.length, currentSet, navigation]);
 
+  // Only a leftward drag moves on to the next set. Going back is deliberately
+  // button-only: a stray rightward drag used to step back a set, which closed
+  // the set being scrambled and started its lock timer.
   const handleSwipe = useCallback(
     ({ nativeEvent }: { nativeEvent: { state: number; translationX: number; velocityX: number } }) => {
       if (nativeEvent.state !== State.END) return;
       const { translationX, velocityX } = nativeEvent;
       if (translationX < -60 && velocityX < -200) goToNext();
-      else if (translationX > 60 && velocityX > 200) goToPrev();
     },
-    [goToNext, goToPrev],
+    [goToNext],
   );
 
   // The arrows fire on release, and only when the finger barely moved. Without
@@ -246,7 +248,7 @@ export function ViewerScreen() {
       <PanGestureHandler
         onHandlerStateChange={handleSwipe}
         enabled={pdfScale <= ZOOMED_IN_ABOVE}
-        activeOffsetX={[-30, 30]}
+        activeOffsetX={-30}
         failOffsetY={[-25, 25]}
       >
         <View style={styles.pdfContainer}>

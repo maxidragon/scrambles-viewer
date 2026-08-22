@@ -3,10 +3,12 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
   Animated,
   useWindowDimensions,
+  GestureResponderEvent,
 } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,6 +21,15 @@ import { RootStackParamList } from '../navigation';
 
 type ViewerRoute = RouteProp<RootStackParamList, 'Viewer'>;
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Viewer'>;
+
+// A finger that travels further than this between press-in and release was
+// scrolling the PDF, not tapping an arrow, so it must not change the set.
+const TAP_SLOP = 12;
+
+// The PDF is fitted to the width, so scale 1 is "fit width". Anything above
+// this counts as zoomed in: the horizontal swipe and the arrows step aside so
+// the pan belongs to the PDF.
+const ZOOMED_IN_ABOVE = 1.05;
 
 export function ViewerScreen() {
   const route = useRoute<ViewerRoute>();
@@ -143,6 +154,22 @@ export function ViewerScreen() {
     [goToNext, goToPrev],
   );
 
+  // The arrows fire on release, and only when the finger barely moved. Without
+  // this a vertical scroll that starts on an arrow still ends in a press,
+  // because the touch never leaves the button before the finger lifts.
+  const touchStart = useRef({ x: 0, y: 0 });
+  const handleArrowPressIn = useCallback((e: GestureResponderEvent) => {
+    touchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+  }, []);
+  const handleArrowPressOut = useCallback(
+    (e: GestureResponderEvent, go: () => void) => {
+      const dx = e.nativeEvent.pageX - touchStart.current.x;
+      const dy = e.nativeEvent.pageY - touchStart.current.y;
+      if (Math.hypot(dx, dy) <= TAP_SLOP) go();
+    },
+    [],
+  );
+
   const handlePdfError = useCallback((err: unknown) => {
     const msg = err instanceof Error ? err.message : String(err);
     const isPasswordErr =
@@ -218,6 +245,7 @@ export function ViewerScreen() {
 
       <PanGestureHandler
         onHandlerStateChange={handleSwipe}
+        enabled={pdfScale <= ZOOMED_IN_ABOVE}
         activeOffsetX={[-30, 30]}
         failOffsetY={[-25, 25]}
       >
@@ -234,6 +262,8 @@ export function ViewerScreen() {
                 source={{ uri: currentSet.pdfPath }}
                 password={currentPassword}
                 fitPolicy={0}
+                minScale={0.5}
+                maxScale={4}
                 style={styles.pdf}
                 onLoadComplete={n => { setPageCount(n); setPasswordError(false); }}
                 onError={handlePdfError}
@@ -247,28 +277,40 @@ export function ViewerScreen() {
               </View>
             )}
 
-            {/* Side tap zones — hidden when zoomed in */}
-            {currentIndex > 0 && pdfScale <= 1.05 && (
-              <TouchableOpacity
-                style={[styles.navZone, styles.navZoneLeft]}
-                onPress={goToPrev}
-                activeOpacity={0.2}
+            {/* Small edge arrows — hidden when zoomed in. They stay narrow on
+                purpose: everything they do not cover is left to the PDF for
+                scrolling and pinching. */}
+            {currentIndex > 0 && pdfScale <= ZOOMED_IN_ABOVE && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.navZone,
+                  styles.navZoneLeft,
+                  pressed && styles.navZonePressed,
+                ]}
+                pressRetentionOffset={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                onPressIn={handleArrowPressIn}
+                onPressOut={e => handleArrowPressOut(e, goToPrev)}
               >
                 <View style={styles.navArrowBox}>
                   <Text style={styles.navArrow}>‹</Text>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             )}
-            {currentIndex < sets.length - 1 && pdfScale <= 1.05 && (
-              <TouchableOpacity
-                style={[styles.navZone, styles.navZoneRight]}
-                onPress={goToNext}
-                activeOpacity={0.2}
+            {currentIndex < sets.length - 1 && pdfScale <= ZOOMED_IN_ABOVE && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.navZone,
+                  styles.navZoneRight,
+                  pressed && styles.navZonePressed,
+                ]}
+                pressRetentionOffset={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                onPressIn={handleArrowPressIn}
+                onPressOut={e => handleArrowPressOut(e, goToNext)}
               >
                 <View style={styles.navArrowBox}>
                   <Text style={styles.navArrow}>›</Text>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </Animated.View>
         </View>
@@ -350,14 +392,16 @@ const styles = StyleSheet.create({
 
   navZone: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: '18%',
+    top: '50%',
+    marginTop: -24,
+    width: 48,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  navZoneLeft: { left: 0 },
-  navZoneRight: { right: 0 },
+  navZoneLeft: { left: 4 },
+  navZoneRight: { right: 4 },
+  navZonePressed: { opacity: 0.5 },
   navArrowBox: {
     backgroundColor: 'rgba(0,0,0,0.25)',
     borderRadius: 20,

@@ -30,8 +30,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — never committed, so they can never reach an EAS build
+.env
 .env*.local
+
+# Google Play service account key (used by eas submit)
+google-play-service-account.json
 
 # typescript
 *.tsbuildinfo

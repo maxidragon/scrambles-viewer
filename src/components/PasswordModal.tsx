@@ -119,6 +119,11 @@ export function PasswordModal({ visible, setName, current = '', showError, onSav
           )}
 
           <View style={[styles.inputRow, showError && styles.inputRowError]}>
+            {/* The mask is drawn by hand in handleChange, so this has to stay a plain
+                visible-text field. Android then treats it as ordinary prose: it offers
+                suggestions and learns the password into the personal dictionary.
+                visible-password is the input type meaning "password, but not obscured",
+                which drops both. Android-only value, so iOS keeps the default keyboard. */}
             <TextInput
               style={styles.input}
               value={display}
@@ -126,6 +131,9 @@ export function PasswordModal({ visible, setName, current = '', showError, onSav
               placeholder="Password"
               placeholderTextColor="#aaa"
               secureTextEntry={false}
+              keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
+              autoComplete="off"
+              importantForAutofill="no"
               autoCapitalize="none"
               autoCorrect={false}
               autoFocus

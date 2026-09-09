@@ -116,7 +116,7 @@ export function SearchScreen() {
               <>
                 <Text style={styles.compName}>{item.name}</Text>
                 <Text style={styles.compMeta}>
-                  {item.city_name}, {item.country_iso2}
+                  {item.city}, {item.country_iso2}
                 </Text>
                 <Text style={styles.compDate}>
                   {formatDate(item.start_date, item.end_date)}

@@ -3,7 +3,7 @@ export interface Competition {
   name: string;
   start_date: string;
   end_date: string;
-  city_name: string;
+  city: string;
   country_iso2: string;
 }
 

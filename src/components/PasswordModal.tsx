@@ -123,14 +123,18 @@ export function PasswordModal({ visible, setName, current = '', showError, onSav
                 visible-text field. Android then treats it as ordinary prose: it offers
                 suggestions and learns the password into the personal dictionary.
                 visible-password is the input type meaning "password, but not obscured",
-                which drops both. Android-only value, so iOS keeps the default keyboard. */}
+                which drops both. Android-only value, so iOS keeps the default keyboard.
+
+                Do not add secureTextEntry={false} here: RN's Android manager implements it
+                as "unset TYPE_NUMBER_VARIATION_PASSWORD | TYPE_TEXT_VARIATION_PASSWORD"
+                (0x10 | 0x80), which is bit-for-bit TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                (0x90) — it silently cancels the line below. false is the default anyway. */}
             <TextInput
               style={styles.input}
               value={display}
               onChangeText={handleChange}
               placeholder="Password"
               placeholderTextColor="#aaa"
-              secureTextEntry={false}
               keyboardType={Platform.OS === 'android' ? 'visible-password' : 'default'}
               autoComplete="off"
               importantForAutofill="no"

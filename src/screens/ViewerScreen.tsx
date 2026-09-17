@@ -48,10 +48,10 @@ export function ViewerScreen() {
   const [passwordError, setPasswordError] = useState(false);
 
   // pdfKey increments to force a clean PDF remount after a password change.
-  // pdfReady gates rendering so we never show the PDF with an empty password,
-  // which avoids the false "incorrect password" error on first open.
+  // Readiness belongs to a specific set, so changing the index cannot render
+  // the next PDF before its password has been checked.
   const [pdfKey, setPdfKey] = useState(0);
-  const [pdfReady, setPdfReady] = useState(false);
+  const [pdfReadyIndex, setPdfReadyIndex] = useState<number | null>(null);
   const [pdfScale, setPdfScale] = useState(1);
   const remountTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevIndexRef = useRef(currentIndex);
@@ -80,7 +80,7 @@ export function ViewerScreen() {
   // When navigating to a different set, reset PDF state
   useEffect(() => {
     if (remountTimer.current) clearTimeout(remountTimer.current);
-    setPdfReady(false);
+    setPdfReadyIndex(null);
     setPdfKey(0);
     setPageCount(0);
     setPasswordError(false);
@@ -108,7 +108,7 @@ export function ViewerScreen() {
       // Still unlocked — show the PDF and stop the timer while it is open.
       markSetOpened(currentSet.name);
       setShowPasswordModal(false);
-      setPdfReady(true);
+      setPdfReadyIndex(currentIndex);
     } else {
       setShowPasswordModal(true);
     }
@@ -117,6 +117,20 @@ export function ViewerScreen() {
   const goTo = useCallback(
     (index: number, dir: 1 | -1 = 1) => {
       if (index < 0 || index >= sets.length || isAnimating.current) return;
+      if (remountTimer.current) clearTimeout(remountTimer.current);
+      setPdfReadyIndex(null);
+
+      const nextSet = sets[index];
+      if (nextSet.pdfPath && getSetLockState(
+        Boolean(passwords[nextSet.name]),
+        closedAt[nextSet.name],
+      ) !== 'unlocked') {
+        // Go straight to the password prompt with no PDF sliding underneath it.
+        slideAnim.setValue(0);
+        setCurrentIndex(index);
+        return;
+      }
+
       isAnimating.current = true;
       Animated.timing(slideAnim, {
         toValue: -dir * width,
@@ -132,7 +146,7 @@ export function ViewerScreen() {
         }).start(() => { isAnimating.current = false; });
       });
     },
-    [sets.length, slideAnim, width],
+    [sets, passwords, closedAt, slideAnim, width],
   );
 
   const goToPrev = useCallback(() => goTo(currentIndex - 1, -1), [currentIndex, goTo]);
@@ -180,7 +194,7 @@ export function ViewerScreen() {
       msg.toLowerCase().includes('security');
     if (isPasswordErr) {
       // Hide the PDF before re-prompting to avoid a stale/crashing native view
-      setPdfReady(false);
+      setPdfReadyIndex(null);
       setPasswordError(true);
       setShowPasswordModal(true);
     }
@@ -195,10 +209,10 @@ export function ViewerScreen() {
       // Give the old PDF native view a frame to fully unmount before the new one mounts
       remountTimer.current = setTimeout(() => {
         setPdfKey(k => k + 1);
-        setPdfReady(true);
+        setPdfReadyIndex(currentIndex);
       }, 80);
     },
-    [currentSet, setSetPassword],
+    [currentSet, currentIndex, setSetPassword],
   );
 
   if (!currentSet) {
@@ -211,7 +225,7 @@ export function ViewerScreen() {
 
   const openPasswordModal = () => {
     setPasswordError(false);
-    setPdfReady(false);
+    setPdfReadyIndex(null);
     setShowPasswordModal(true);
   };
 
@@ -258,9 +272,9 @@ export function ViewerScreen() {
                 <Text style={styles.errorText}>No PDF loaded for this set</Text>
                 <Text style={styles.errorHint}>Load a ZIP file from the home screen</Text>
               </View>
-            ) : pdfReady ? (
+            ) : pdfReadyIndex === currentIndex ? (
               <Pdf
-                key={pdfKey}
+                key={`${currentIndex}:${pdfKey}`}
                 source={{ uri: currentSet.pdfPath }}
                 password={currentPassword}
                 fitPolicy={0}

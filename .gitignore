@@ -45,3 +45,6 @@ google-play-service-account.json
 /android
 
 .claude/
+
+# Playwright MCP session output
+.playwright-mcp/

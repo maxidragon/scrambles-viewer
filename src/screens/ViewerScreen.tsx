@@ -80,6 +80,7 @@ export function ViewerScreen() {
   // When navigating to a different set, reset PDF state
   useEffect(() => {
     if (remountTimer.current) clearTimeout(remountTimer.current);
+    remountTimer.current = null;
     setPdfReadyIndex(null);
     setPdfKey(0);
     setPageCount(0);
@@ -118,6 +119,7 @@ export function ViewerScreen() {
     (index: number, dir: 1 | -1 = 1) => {
       if (index < 0 || index >= sets.length || isAnimating.current) return;
       if (remountTimer.current) clearTimeout(remountTimer.current);
+      remountTimer.current = null;
       setPdfReadyIndex(null);
 
       const nextSet = sets[index];
@@ -208,6 +210,7 @@ export function ViewerScreen() {
       setShowPasswordModal(false);
       // Give the old PDF native view a frame to fully unmount before the new one mounts
       remountTimer.current = setTimeout(() => {
+        remountTimer.current = null;
         setPdfKey(k => k + 1);
         setPdfReadyIndex(currentIndex);
       }, 80);
@@ -224,6 +227,8 @@ export function ViewerScreen() {
   }
 
   const openPasswordModal = () => {
+    if (remountTimer.current) clearTimeout(remountTimer.current);
+    remountTimer.current = null;
     setPasswordError(false);
     setPdfReadyIndex(null);
     setShowPasswordModal(true);
@@ -288,8 +293,17 @@ export function ViewerScreen() {
             ) : (
               <View style={styles.center}>
                 <Text style={styles.placeholderText}>
-                  {currentPassword ? 'Loading…' : 'Enter password to view this set'}
+                  {remountTimer.current ? 'Loading…' : 'Enter password to view this set'}
                 </Text>
+                {!showPasswordModal && !remountTimer.current && (
+                  <TouchableOpacity
+                    style={styles.enterPasswordBtn}
+                    onPress={openPasswordModal}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.enterPasswordBtnText}>Enter password</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
 
@@ -375,6 +389,14 @@ const styles = StyleSheet.create({
   errorText: { color: '#fff', fontSize: 16, fontWeight: '600', textAlign: 'center', marginBottom: 8 },
   errorHint: { color: '#aaa', fontSize: 13, textAlign: 'center', lineHeight: 20 },
   placeholderText: { color: '#888', fontSize: 15, textAlign: 'center' },
+  enterPasswordBtn: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: '#003087',
+  },
+  enterPasswordBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 
   landscapeBar: {
     flexDirection: 'row',

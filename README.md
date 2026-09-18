@@ -9,7 +9,9 @@ load the TNoodle scrambles ZIP, and every PDF is matched to its round and scramb
 set and laid out in schedule order — so the next set to scramble is always the next
 one in the list.
 
-Built with Expo (React Native) for Android and iOS.
+Built with Expo (React Native) for Android and iOS. A desktop version for macOS, Windows
+and Linux lives in [`desktop/`](desktop/README.md) and shares this app's schedule and
+PDF-matching logic.
 
 ## Features
 

@@ -1,5 +1,6 @@
 import { load } from "@tauri-apps/plugin-store";
 import type { ScrambleSet, WCIF } from "@shared/types/wcif";
+import { hasTauriBridge } from "../platform/tauri";
 
 interface KeyValueStore {
   get<T>(key: string): Promise<T | undefined>;
@@ -28,10 +29,6 @@ function inMemoryStore(): KeyValueStore {
 }
 
 const memory = inMemoryStore();
-
-function hasTauriBridge(): boolean {
-  return "__TAURI_INTERNALS__" in window;
-}
 
 export interface PersistedCompetition {
   competitionId: string;

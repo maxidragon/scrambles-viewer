@@ -14,11 +14,13 @@ interface Props {
   currentIndex: number | null;
   onOpenSet(index: number): void;
   zipImport: ZipImport;
+  unlockedSetNames: ReadonlySet<string>;
+  onPdfsCleared(): void;
 }
 
 type Confirming = "reset" | "clear-pdfs" | null;
 
-export function Sidebar({ currentIndex, onOpenSet, zipImport }: Props): React.JSX.Element {
+export function Sidebar({ currentIndex, onOpenSet, zipImport, unlockedSetNames, onPdfsCleared }: Props): React.JSX.Element {
   const { ready, competitionId, competitionName, wcif, sets, syncWcif, replaceSets, reset } = useCompetition();
   const [searchOpen, setSearchOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -48,6 +50,7 @@ export function Sidebar({ currentIndex, onOpenSet, zipImport }: Props): React.JS
     await clearPdfs();
     await reset();
     zipImport.dismiss();
+    onPdfsCleared();
     setNotice(null);
   };
 
@@ -56,6 +59,7 @@ export function Sidebar({ currentIndex, onOpenSet, zipImport }: Props): React.JS
     await clearPdfs();
     await replaceSets(withoutPdfs(sets));
     zipImport.dismiss();
+    onPdfsCleared();
   };
 
   const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +152,13 @@ export function Sidebar({ currentIndex, onOpenSet, zipImport }: Props): React.JS
       )}
 
       {groups.length > 0 ? (
-        <SetList sets={sets} groups={groups} currentIndex={currentIndex} onOpen={onOpenSet} />
+        <SetList
+          sets={sets}
+          groups={groups}
+          currentIndex={currentIndex}
+          unlockedSetNames={unlockedSetNames}
+          onOpen={onOpenSet}
+        />
       ) : (
         <div className="empty">
           {competitionId === null ? "Search for a WCA competition to get started." : "No schedule data yet. Try Sync."}

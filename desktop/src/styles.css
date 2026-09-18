@@ -101,6 +101,7 @@ input { font: inherit; }
 .unmatched summary { cursor: pointer; }
 .unmatched ul { margin: 4px 0 0; padding-left: 18px; user-select: text; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
 .layout { position: relative; }
+.main-pane { position: relative; }
 .layout-dragging::after {
   content: ""; position: absolute; inset: 8px; border: 3px dashed var(--navy);
   border-radius: 10px; pointer-events: none; background: rgba(0, 48, 135, 0.06);
@@ -110,3 +111,45 @@ input { font: inherit; }
   background: var(--navy); color: #fff; padding: 12px 20px; border-radius: 8px;
   font-weight: 600; pointer-events: none;
 }
+
+/* Viewer */
+.viewer-toolbar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: var(--card); border-bottom: 1px solid var(--line);
+}
+.viewer-set-name { flex: 1; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.viewer-counter { color: var(--muted); font-variant-numeric: tabular-nums; }
+.viewer-toolbar .btn { min-width: 0; padding: 5px 10px; }
+.pdf-pane { flex: 1; overflow: auto; }
+.pdf-page { display: block; margin: 0 auto; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+.set-lock { font-size: 13px; }
+.prompt-reopen { margin-top: 14px; }
+
+.main-pane-fullscreen { background: #fff; }
+.fullscreen-overlay {
+  position: absolute; top: 10px; right: 14px; z-index: 2;
+  display: flex; gap: 12px; align-items: baseline;
+  background: rgba(0, 48, 135, 0.85); color: #fff; padding: 6px 12px; border-radius: 6px;
+  max-width: 60%;
+}
+.fullscreen-overlay .viewer-set-name { flex: none; font-size: 13px; }
+.fullscreen-overlay .viewer-counter { color: #dfe6ff; font-size: 13px; }
+
+/* Password prompt */
+.prompt-backdrop {
+  position: absolute; inset: 0; z-index: 3;
+  background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center;
+}
+.prompt-card {
+  background: #fff; border-radius: 10px; padding: 20px; width: 360px; max-width: 90%;
+  display: flex; flex-direction: column; gap: 10px; text-align: left; color: var(--ink);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+.prompt-title { margin: 0; font-size: 16px; }
+.prompt-set { color: var(--muted); font-size: 13px; }
+.prompt-error { background: #fff3f3; color: #8e1c1c; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+.prompt-row { display: flex; gap: 8px; }
+.prompt-row input { flex: 1; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 15px; }
+.prompt-row input[aria-invalid="true"] { border-color: var(--danger); }
+.prompt-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.pdf-page-count { font-size: 12px; color: var(--muted); text-align: right; margin-bottom: 6px; }

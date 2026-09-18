@@ -5,10 +5,11 @@ interface Props {
   sets: ScrambleSet[];
   groups: RoundGroup[];
   currentIndex: number | null;
+  unlockedSetNames: ReadonlySet<string>;
   onOpen(index: number): void;
 }
 
-export function SetList({ sets, groups, currentIndex, onOpen }: Props): React.JSX.Element {
+export function SetList({ sets, groups, currentIndex, unlockedSetNames, onOpen }: Props): React.JSX.Element {
   return (
     <div className="set-list">
       {groups.map((group) => (
@@ -30,7 +31,13 @@ export function SetList({ sets, groups, currentIndex, onOpen }: Props): React.JS
               >
                 <span className={`dot ${hasPdf ? "dot-loaded" : "dot-empty"}`} aria-hidden />
                 <span className="set-name">{set.name}</span>
-                {!hasPdf && <span className="set-no-pdf">No PDF</span>}
+                {hasPdf ? (
+                  <span className="set-lock" aria-label={unlockedSetNames.has(set.name) ? "unlocked" : "locked"}>
+                    {unlockedSetNames.has(set.name) ? "🔑" : "🔒"}
+                  </span>
+                ) : (
+                  <span className="set-no-pdf">No PDF</span>
+                )}
               </button>
             );
           })}

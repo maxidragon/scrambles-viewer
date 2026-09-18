@@ -9,6 +9,10 @@ const sharedDir = fileURLToPath(new URL("../src", import.meta.url));
 
 export default defineConfig(() => ({
   plugins: [react()],
+  // The shared files sit under the mobile app, whose tsconfig extends an Expo base that
+  // only exists when the mobile dependencies are installed. Use this app's config for
+  // every file instead of Vite's per-file discovery.
+  tsconfig: "./tsconfig.json",
   resolve: {
     alias: { "@shared": sharedDir },
   },

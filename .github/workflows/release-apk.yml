@@ -11,6 +11,9 @@ concurrency:
 
 jobs:
   build:
+    # Desktop releases are tagged desktop-vX.Y.Z and built by desktop-release.yml;
+    # without this guard their tag would fail the version check below.
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
     permissions:
       contents: write

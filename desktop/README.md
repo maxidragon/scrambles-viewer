@@ -36,6 +36,26 @@ cargo check --manifest-path src-tauri/Cargo.toml
 npm run tauri build    # bundles under src-tauri/target/release/bundle/
 ```
 
+## Releases
+
+Publishing a GitHub release tagged `desktop-v1.2.3` runs
+`.github/workflows/desktop-release.yml`, which builds on each platform's own runner and
+attaches the installers to the release: `.dmg` for Apple silicon and Intel Macs, an NSIS
+setup `.exe` for Windows, and `.AppImage` plus `.deb` for Linux. The tag is the only
+source of the version; the workflow writes it into the app config and commits it back to
+the default branch. To set it by hand: `node scripts/set-app-version.ts 1.2.3`.
+
+The builds are **not code-signed**, so the first launch shows a warning:
+
+- **macOS:** "cannot be opened because the developer cannot be verified". Right-click
+  the app, choose *Open*, then *Open* again. Or, in a terminal:
+  `xattr -d com.apple.quarantine "/Applications/Scrambles Viewer.app"`.
+- **Windows:** SmartScreen shows "Windows protected your PC". Click *More info*, then
+  *Run anyway*.
+- **Linux:** make the AppImage executable (`chmod +x`) and run it, or install the `.deb`.
+
+Signing needs paid developer memberships; see SPEC-005 for when that is revisited.
+
 ## Using it
 
 - **Search** finds a competition on the WCA; selecting it loads the public schedule.

@@ -10,10 +10,10 @@ and Linux. Same product as the mobile app at the repository root — pick a WCA
 competition, load the TNoodle ZIP, step through scramble sets in schedule order, unlock
 each set with its passcode — for people whose device at the scrambling table is a laptop.
 
-**Current focus:** the app is built through SPEC-004 (schedule, ZIP import, viewer).
-Next is [SPEC-005](../docs/specs/SPEC-005-2026-09-18-desktop-release.md), the CI build and
-release. Read [SPEC-001](../docs/specs/SPEC-001-2026-09-18-desktop-app.md) and the area
-spec for whatever you are about to touch before writing code.
+**Current focus:** SPEC-001 to SPEC-005 are implemented; the next step is the first
+tagged desktop release (`desktop-v0.1.0`) and testing the installers on each platform.
+Read [SPEC-001](../docs/specs/SPEC-001-2026-09-18-desktop-app.md) and the area spec for
+whatever you are about to touch before writing code.
 
 ## Tech stack
 
@@ -40,6 +40,8 @@ desktop/
     platform/         Tauri bridge detection; PDF file storage (fs plugin, or memory in a browser)
   src-tauri/          Rust shell, tauri.conf.json, capabilities/
   tests/              vitest — shared-module tests, archive/viewer logic, PDF password fixtures
+  scripts/            set-app-version.ts — version write-back used by the release workflow
+../.github/workflows/ desktop-ci.yml (checks on PRs), desktop-release.yml (desktop-v* tags)
 ../src/           the mobile app; the modules below are imported here via the @shared/* alias
   types/wcif.ts
   api/wca.ts

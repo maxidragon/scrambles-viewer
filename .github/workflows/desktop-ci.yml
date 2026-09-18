@@ -1,0 +1,57 @@
+name: Desktop checks
+
+# Lint, typecheck, tests and a Rust compile check for desktop/. Full bundles are built
+# only on release tags (desktop-release.yml). The shared modules under src/ are in the
+# path filter because the desktop app imports them.
+on:
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'src/types/**'
+      - 'src/api/**'
+      - 'src/utils/**'
+      - '.github/workflows/desktop-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'desktop/**'
+      - 'src/types/**'
+      - 'src/api/**'
+      - 'src/utils/**'
+      - '.github/workflows/desktop-ci.yml'
+
+concurrency:
+  group: desktop-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './desktop/src-tauri -> target'
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: cargo check --manifest-path src-tauri/Cargo.toml

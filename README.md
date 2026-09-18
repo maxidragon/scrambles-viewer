@@ -69,7 +69,8 @@ Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-ap
    always reflects the latest release.
 
 The tag is the single source of truth for the user-facing version — you don't need to
-bump `app.json` by hand before tagging. `android.versionCode` is not stored in the repo
+bump `app.json` by hand before tagging. Desktop releases use `desktop-v1.2.3` tags and
+their own workflow; see [desktop/README.md](desktop/README.md#releases). `android.versionCode` is not stored in the repo
 at all: `eas.json` sets `appVersionSource: "remote"`, so EAS increments it per build.
 
 To set the version locally anyway:

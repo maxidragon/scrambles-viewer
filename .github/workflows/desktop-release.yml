@@ -1,0 +1,129 @@
+name: Build desktop bundles and attach to Release
+
+# Publishing a GitHub release tagged desktop-vX.Y.Z builds the desktop app on each
+# platform's own runner and attaches the installers to that release:
+#   macOS   -> .dmg for Apple silicon and for Intel
+#   Windows -> NSIS setup .exe
+#   Linux   -> .AppImage and .deb
+# The tag is the only source of the version; it is written into the desktop config
+# before the build and committed back to the default branch afterwards, as the mobile
+# release workflow does for app.json. Builds are unsigned (SPEC-005).
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    if: startsWith(github.event.release.tag_name, 'desktop-v')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Read version from release tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#desktop-v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tag '$TAG' is not a version like desktop-v1.2.3"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            args: '--target aarch64-apple-darwin --bundles dmg'
+            rust-targets: aarch64-apple-darwin
+          - platform: macos-latest
+            args: '--target x86_64-apple-darwin --bundles dmg'
+            rust-targets: x86_64-apple-darwin
+          - platform: windows-latest
+            args: '--bundles nsis'
+            rust-targets: ''
+          - platform: ubuntu-22.04
+            args: '--bundles appimage,deb'
+            rust-targets: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tauri system dependencies (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './desktop/src-tauri -> target'
+
+      - name: Install frontend dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: Set app version from release tag
+        shell: bash
+        run: node desktop/scripts/set-app-version.ts "${{ needs.version.outputs.version }}"
+
+      - name: Build and upload to the release
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: desktop
+          releaseId: ${{ github.event.release.id }}
+          includeUpdaterJson: false
+          args: ${{ matrix.args }}
+
+  bump-version:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Commit version bump to default branch
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          node desktop/scripts/set-app-version.ts "$VERSION"
+          if git diff --quiet -- desktop; then
+            echo "$BRANCH is already at $VERSION — nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add desktop/src-tauri/tauri.conf.json desktop/package.json
+          git commit -m "chore(desktop): set app version to $VERSION [skip ci]"
+          git pull --rebase origin "$BRANCH"
+          git push origin "HEAD:$BRANCH"

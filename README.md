@@ -9,7 +9,9 @@ load the TNoodle scrambles ZIP, and every PDF is matched to its round and scramb
 set and laid out in schedule order — so the next set to scramble is always the next
 one in the list.
 
-Built with Expo (React Native) for Android and iOS.
+Built with Expo (React Native) for Android and iOS. A desktop version for macOS, Windows
+and Linux lives in [`desktop/`](desktop/README.md) and shares this app's schedule and
+PDF-matching logic.
 
 ## Features
 
@@ -67,7 +69,8 @@ Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-ap
    always reflects the latest release.
 
 The tag is the single source of truth for the user-facing version — you don't need to
-bump `app.json` by hand before tagging. `android.versionCode` is not stored in the repo
+bump `app.json` by hand before tagging. Desktop releases use `desktop-v1.2.3` tags and
+their own workflow; see [desktop/README.md](desktop/README.md#releases). `android.versionCode` is not stored in the repo
 at all: `eas.json` sets `appVersionSource: "remote"`, so EAS increments it per build.
 
 To set the version locally anyway:

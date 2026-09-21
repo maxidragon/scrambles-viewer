@@ -46,6 +46,7 @@ passcode is forgotten need restating for that layout without becoming weaker.
 - **Fullscreen.** I press F11 (Ctrl+Cmd+F on macOS) or the fullscreen control.
   Acceptance: the sidebar and toolbar disappear, a thin overlay shows the set name and
   "n / total", and Escape or the same key returns; keyboard navigation keeps working.
+  Escape inside the passcode prompt closes the prompt, not fullscreen.
 - **Quit.** I close the app. Acceptance: on relaunch no set is unlocked.
 
 ## Proposed Solution
@@ -140,3 +141,4 @@ None.
 | Date | Change |
 |------|--------|
 | 2026-09-18 | Initial draft |
+| 2026-09-18 | Implemented. Page count shown above the pages; the list glyph reflects a held passcode (expiry is applied on open, as on mobile); Escape in the prompt closes the prompt. |

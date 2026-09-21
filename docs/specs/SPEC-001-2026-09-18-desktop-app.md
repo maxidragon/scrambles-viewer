@@ -42,8 +42,8 @@ Error and edge states are owned by the area specs (002–005).
 ## Proposed Solution
 
 A Tauri 2 shell around a React 19 + Vite + TypeScript UI. All product logic runs in the
-webview; the Rust side is the stock Tauri binary plus the official dialog, file-system
-and store plugins — no custom commands until a need appears. PDFs are rendered in the
+webview; the Rust side is the stock Tauri binary plus the official file-system and store
+plugins — no custom commands until a need appears. PDFs are rendered in the
 webview by PDF.js, which handles password-protected files itself, so a passcode never
 leaves JavaScript memory and no external viewer is launched.
 
@@ -138,7 +138,8 @@ sequential (each builds on the previous state); 5 can start after 1.
 3. **PDF.js renders in the webview; passwords never cross to Rust.** The alternative —
    decrypting in Rust and handing pages to the UI — moves the secret across a process
    boundary for no benefit. PDF.js reports "needs password" and "wrong password" as
-   distinct outcomes, which the viewer relies on.
+   distinct outcomes, which the viewer relies on. Its `legacy` build is used: the main
+   build assumes a 2025 browser, and the legacy one also runs under Node for tests.
 4. **Same security posture as mobile, stated once here:** passwords in memory only;
    30-minute re-lock; the only network host is the WCA API; PDFs are written to the
    app's own data directory; the webview's file-system access is scoped to that
@@ -149,6 +150,9 @@ sequential (each builds on the previous state); 5 can start after 1.
 6. **No custom Rust commands until a spec needs one.** Everything in 002–004 is doable
    with the official plugins. The first candidate is decrypting an outer TNoodle ZIP that
    was given a global password (see SPEC-003 open questions).
+7. **A plain browser is a development target.** Outside the Tauri bridge, persistence and
+   PDF storage fall back to memory behind two small adapters, so the whole UI can be
+   driven with Playwright on the Vite dev server. The shell remains the only product.
 
 ## Open Questions
 
@@ -163,3 +167,4 @@ sequential (each builds on the previous state); 5 can start after 1.
 | Date | Change |
 |------|--------|
 | 2026-09-18 | Initial draft |
+| 2026-09-18 | Phases 1–4 implemented. Dialog plugin dropped (see SPEC-003); PDF.js legacy build; in-memory adapters for browser development (decision 7). |

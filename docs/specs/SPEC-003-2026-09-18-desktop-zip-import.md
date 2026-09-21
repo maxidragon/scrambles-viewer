@@ -49,7 +49,9 @@ fix — but only if someone can read the offending name.
 
 Import pipeline, all in the webview:
 
-1. Read the chosen file's bytes.
+1. Take the file's bytes from the webview itself: the Load ZIP button is a native file
+   input, and a drop arrives through the HTML5 drop event because Tauri's own drag-drop
+   handler is switched off. No file-system permission exists for the chosen archive.
 2. Open it as a ZIP. If it contains exactly one entry whose name ends in
    `Computer Display PDFs.zip`, open that entry as the archive to import from. If it
    contains several such entries, fail with a message — that is not a TNoodle archive
@@ -112,8 +114,9 @@ None.
    passcodes: a scrambler is given the passcode for their set and no other. The delegate
    reads the passcode from the SECRET file and types it; the app does not shortcut that.
 4. **File-system capability is scoped** to the PDF directory under the app data
-   directory (read, write, create directory, remove). The picked ZIP is read through the
-   dialog's returned path, which Tauri scopes for that one file.
+   directory (read, write, create directory, remove). The chosen ZIP never needs one:
+   its bytes come from the file input or the drop event, so the dialog plugin is not
+   used at all.
 
 ## Open Questions
 
@@ -131,3 +134,4 @@ None.
 | Date | Change |
 |------|--------|
 | 2026-09-18 | Initial draft |
+| 2026-09-18 | Implemented. File input and HTML5 drop replace the dialog plugin, which removes the only permission outside the PDF directory. |

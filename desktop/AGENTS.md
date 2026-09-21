@@ -10,15 +10,16 @@ and Linux. Same product as the mobile app at the repository root — pick a WCA
 competition, load the TNoodle ZIP, step through scramble sets in schedule order, unlock
 each set with its passcode — for people whose device at the scrambling table is a laptop.
 
-**Current focus:** not yet scaffolded. Build order and scope are in
-[SPEC-001](../docs/specs/SPEC-001-2026-09-18-desktop-app.md); read it and the area spec
-for whatever you are about to touch before writing code.
+**Current focus:** SPEC-001 to SPEC-005 are implemented; the next step is the first
+tagged desktop release (`desktop-v0.1.0`) and testing the installers on each platform.
+Read [SPEC-001](../docs/specs/SPEC-001-2026-09-18-desktop-app.md) and the area spec for
+whatever you are about to touch before writing code.
 
 ## Tech stack
 
-- Tauri 2 (Rust shell, stock; official `dialog`, `fs` and `store` plugins only)
-- React 19, Vite, TypeScript strict; vitest for tests
-- PDF.js (`pdfjs-dist`) renders PDFs inside the webview; `jszip` reads archives
+- Tauri 2 (Rust shell, stock; official `fs` and `store` plugins only)
+- React 19, Vite, TypeScript strict; vitest for tests; ESLint rejects `any`, `as` and `!`
+- PDF.js (`pdfjs-dist`, its `legacy` build) renders PDFs inside the webview; `jszip` reads archives
 - Node 24, npm; Rust stable toolchain for `src-tauri/`
 
 Look up the exact API before using it: Tauri v2 docs at https://v2.tauri.app/ (the v1
@@ -30,10 +31,17 @@ API is different and widely quoted; do not use it), PDF.js from the version pinn
 
 ```
 desktop/
-  src/            React app
-  src-tauri/      Rust shell, tauri.conf.json, capabilities/
-  tests/          vitest — includes the tests for the shared modules
-  scripts/        version write-back used by the release workflow
+  src/
+    App.tsx           layout, navigation with the lock rules, keyboard map, fullscreen, drop
+    components/       sidebar: competition header, search panel, set list, import result
+    store/            competition context; persistence (store plugin); sync merge + grouping
+    import/           archive selection + matching (pure), import hook, result panel
+    viewer/           viewer pane, PDF.js wrapper, page renderer, password prompt, lock state
+    platform/         Tauri bridge detection; PDF file storage (fs plugin, or memory in a browser)
+  src-tauri/          Rust shell, tauri.conf.json, capabilities/
+  tests/              vitest — shared-module tests, archive/viewer logic, PDF password fixtures
+  scripts/            set-app-version.ts — version write-back used by the release workflow
+../.github/workflows/ desktop-ci.yml (checks on PRs), desktop-release.yml (desktop-v* tags)
 ../src/           the mobile app; the modules below are imported here via the @shared/* alias
   types/wcif.ts
   api/wca.ts
@@ -65,6 +73,14 @@ desktop/
   to the PDF directory in app data; no shell, no HTTP plugin, no updater.
 - **No custom Rust commands without a spec.** Everything planned is doable with the
   official plugins from the webview.
+- **`npm run dev` in a plain browser is a supported development mode.** Without the Tauri
+  bridge, persistence and PDF storage fall back to memory (`src/platform/`,
+  `src/store/persistence.ts`), so search, import, the prompt and rendering can all be
+  driven with Playwright. Nothing is written anywhere in that mode; the shell is the
+  product.
+- **The picked or dropped ZIP is read as bytes in the webview**, never by path: no
+  file-system permission exists for it, and Tauri's own drag-drop handler is off so the
+  HTML5 drop event carries the file.
 - **Verify APIs exist in the pinned versions** before relying on them; Tauri v1 and PDF.js
   pre-4 examples are everywhere online and plausibly wrong here.
 - Docs discipline: **state docs** (this file, spec bodies, READMEs) describe the system as

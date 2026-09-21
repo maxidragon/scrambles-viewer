@@ -110,3 +110,4 @@ None.
 | Date | Change |
 |------|--------|
 | 2026-09-18 | Initial draft |
+| 2026-09-18 | Implemented: desktop-ci.yml, desktop-release.yml (macOS arm64 + x86_64 dmg, Windows NSIS exe, Linux AppImage + deb), version script, mobile workflow guarded to v-tags. Unsigned-build instructions live in desktop/README.md rather than a release-notes template. |

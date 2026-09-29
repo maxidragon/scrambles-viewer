@@ -45,6 +45,12 @@ setup `.exe` for Windows, and `.AppImage` plus `.deb` for Linux. The tag is the 
 source of the version; the workflow writes it into the app config and commits it back to
 the default branch. To set it by hand: `node scripts/set-app-version.ts 1.2.3`.
 
+A non-prerelease also updates the [`scrambles-viewer-bin`](https://aur.archlinux.org/packages/scrambles-viewer-bin)
+package on the AUR: the workflow fills `aur/PKGBUILD` with the version and the release's
+`.deb`, lets makepkg compute the checksums and test-build it, then pushes to the AUR.
+It needs, in the repository settings, the secret `AUR_SSH_PRIVATE_KEY` (a key registered
+on the AUR account) and the variables `AUR_USERNAME` and `AUR_EMAIL` for the AUR commit.
+
 The builds are **not code-signed**, so the first launch shows a warning:
 
 - **macOS:** "cannot be opened because the developer cannot be verified". Right-click
@@ -53,6 +59,7 @@ The builds are **not code-signed**, so the first launch shows a warning:
 - **Windows:** SmartScreen shows "Windows protected your PC". Click *More info*, then
   *Run anyway*.
 - **Linux:** make the AppImage executable (`chmod +x`) and run it, or install the `.deb`.
+  On Arch: `yay -S scrambles-viewer-bin` (or any AUR helper).
 
 Signing needs paid developer memberships; see SPEC-005 for when that is revisited.
 

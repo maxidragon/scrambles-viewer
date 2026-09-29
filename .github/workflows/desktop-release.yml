@@ -96,6 +96,46 @@ jobs:
           includeUpdaterJson: false
           args: ${{ matrix.args }}
 
+  aur:
+    # Arch users get the Linux build as scrambles-viewer-bin: desktop/aur/PKGBUILD
+    # repackages the .deb attached above. Pre-releases stay off the AUR. Needs the
+    # AUR_SSH_PRIVATE_KEY secret and the AUR_USERNAME / AUR_EMAIL variables.
+    needs: [version, build]
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fill in the PKGBUILD from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+          RELEASE_ID: ${{ github.event.release.id }}
+        run: |
+          DEB=$(gh api "repos/${{ github.repository }}/releases/$RELEASE_ID/assets" \
+            --jq '[.[] | select(.name | endswith("_amd64.deb")) | .name]')
+          if [ "$(jq length <<< "$DEB")" != 1 ]; then
+            echo "::error::Expected exactly one _amd64.deb on the release, found: $DEB"
+            exit 1
+          fi
+          DEB=$(jq -r '.[0]' <<< "$DEB")
+          sed -e "s/^pkgver=.*/pkgver=$VERSION/" \
+              -e "s/^_deb=.*/_deb='$DEB'/" \
+              desktop/aur/PKGBUILD > "$RUNNER_TEMP/PKGBUILD"
+          grep -E '^(pkgver|_deb)=' "$RUNNER_TEMP/PKGBUILD"
+
+      - name: Publish to the AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
+        with:
+          pkgname: scrambles-viewer-bin
+          pkgbuild: ${{ runner.temp }}/PKGBUILD
+          updpkgsums: true
+          test: true
+          commit_username: ${{ vars.AUR_USERNAME }}
+          commit_email: ${{ vars.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update to ${{ needs.version.outputs.version }}
+
   bump-version:
     needs: [version, build]
     runs-on: ubuntu-latest

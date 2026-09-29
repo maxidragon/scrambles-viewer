@@ -41,7 +41,8 @@ desktop/
   src-tauri/          Rust shell, tauri.conf.json, capabilities/
   tests/              vitest — shared-module tests, archive/viewer logic, PDF password fixtures
   scripts/            set-app-version.ts — version write-back used by the release workflow
-../.github/workflows/ desktop-ci.yml (checks on PRs), desktop-release.yml (desktop-v* tags)
+  aur/                PKGBUILD template for scrambles-viewer-bin, filled and pushed on release
+../.github/workflows/ desktop-ci.yml (checks on PRs), desktop-release.yml (desktop-v* tags, AUR)
 ../src/           the mobile app; the modules below are imported here via the @shared/* alias
   types/wcif.ts
   api/wca.ts

@@ -101,7 +101,7 @@ None.
 
 ## Open Questions
 
-- Linux packaging beyond AppImage and Debian (RPM, Flatpak): wait for a request.
+- Linux packaging beyond AppImage, Debian and the AUR (RPM, Flatpak): wait for a request.
 - Universal macOS binary instead of two disk images: simpler for users, twice the size;
   decide when the first release is cut.
 
@@ -111,3 +111,4 @@ None.
 |------|--------|
 | 2026-09-18 | Initial draft |
 | 2026-09-18 | Implemented: desktop-ci.yml, desktop-release.yml (macOS arm64 + x86_64 dmg, Windows NSIS exe, Linux AppImage + deb), version script, mobile workflow guarded to v-tags. Unsigned-build instructions live in desktop/README.md rather than a release-notes template. |
+| 2026-09-29 | Added AUR publishing: a non-prerelease desktop release pushes `scrambles-viewer-bin` (repackaged `.deb`, x86_64) to the AUR from `desktop/aur/PKGBUILD`. |

@@ -4,14 +4,35 @@
 
 # Scrambles Viewer
 
-A mobile app for viewing WCA scramble PDFs at a competition. Pick a competition,
-load the TNoodle scrambles ZIP, and every PDF is matched to its round and scramble
-set and laid out in schedule order — so the next set to scramble is always the next
-one in the list.
+An app for viewing WCA scramble PDFs at a competition, on a phone or a laptop. Pick a
+competition, load the TNoodle scrambles ZIP, and every PDF is matched to its round and
+scramble set and laid out in schedule order — so the next set to scramble is always the
+next one in the list.
 
-Built with Expo (React Native) for Android and iOS. A desktop version for macOS, Windows
-and Linux lives in [`desktop/`](desktop/README.md) and shares this app's schedule and
-PDF-matching logic.
+There are two apps in this repository, doing the same job:
+
+- **Mobile** — Expo (React Native) for Android and iOS, at the repository root.
+- **Desktop** — Tauri 2 and React for macOS, Windows and Linux, in
+  [`desktop/`](desktop/README.md).
+
+The schedule ordering, PDF matching, event names and re-lock rules are written once in
+`src/` and imported by both, so the two apps always agree on which PDF is which set.
+
+## Download
+
+All builds are on the [releases page](https://github.com/maxidragon/scrambles-viewer/releases).
+Mobile and desktop are released separately:
+
+| App | Release tag | What's attached |
+| --- | --- | --- |
+| Android | `v1.2.3` | `.apk` |
+| Desktop | `desktop-v1.2.3` | macOS `.dmg` (Apple silicon and Intel), Windows setup `.exe`, Linux `.AppImage` and `.deb` |
+
+On Arch Linux the desktop app is also on the AUR as
+[`scrambles-viewer-bin`](https://aur.archlinux.org/packages/scrambles-viewer-bin).
+
+The desktop builds are not code-signed, so macOS and Windows warn on first launch;
+[desktop/README.md](desktop/README.md#releases) explains how to get past it.
 
 ## Features
 
@@ -31,13 +52,21 @@ PDF-matching logic.
   later and the password is required again. The timer only runs while a set is closed,
   and it restarts each time you leave the set, so a set you keep returning to does not
   silently stay unlocked all day.
-- **Viewer built for the venue** — swipe between sets, landscape support, and the PDF
-  opens zoomed in so scrambles are readable at arm's length.
+- **Viewer built for the venue** — on mobile: swipe between sets, landscape support, and
+  the PDF opens zoomed in so scrambles are readable at arm's length. On desktop: arrow
+  keys between sets, keyboard zoom, fullscreen, drag-and-drop of the ZIP, and **Lock
+  all** to drop every passcode at once.
 - **Offline after import** — the WCIF, the set list, and the extracted PDFs are stored
   locally, so the app works without a connection once the ZIP is loaded. `Sync` refetches
   the WCIF when the schedule changes.
 
-## Getting started
+## Mobile app
+
+The rest of this section is about the Expo app at the repository root. For the desktop
+app — running, building, releases, keyboard shortcuts — see
+[desktop/README.md](desktop/README.md).
+
+### Getting started
 
 Requires Node.js 20+ and the Expo tooling.
 
@@ -51,7 +80,7 @@ npm run ios
 The PDF viewer relies on native modules, so it does not run in Expo Go — use a
 development build or one of the APKs below.
 
-## Building
+### Building
 
 Preview APK (EAS cloud build, `preview` profile in `eas.json`):
 
@@ -59,7 +88,7 @@ Preview APK (EAS cloud build, `preview` profile in `eas.json`):
 npx eas-cli build --profile preview --platform android
 ```
 
-### Releases
+#### Releases
 
 Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-apk.yml`:
 
@@ -69,8 +98,7 @@ Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-ap
    always reflects the latest release.
 
 The tag is the single source of truth for the user-facing version — you don't need to
-bump `app.json` by hand before tagging. Desktop releases use `desktop-v1.2.3` tags and
-their own workflow; see [desktop/README.md](desktop/README.md#releases). `android.versionCode` is not stored in the repo
+bump `app.json` by hand before tagging. `android.versionCode` is not stored in the repo
 at all: `eas.json` sets `appVersionSource: "remote"`, so EAS increments it per build.
 
 To set the version locally anyway:
@@ -79,7 +107,7 @@ To set the version locally anyway:
 node scripts/set-app-version.js 1.2.3
 ```
 
-### Google Play
+#### Google Play
 
 The `production` profile builds an App Bundle and `eas.json` has a matching submit
 profile pointing at the internal track:
@@ -94,24 +122,35 @@ satisfies, and the Play Console setup, listing assets, and declarations that are
 
 ## Project structure
 
+Files marked *shared* are imported by the desktop app as well, and must stay free of
+React Native and Expo imports.
+
 ```
 assets/                   app icon, adaptive icon, favicon, logo (PNG + SVG source)
-src/
-  api/wca.ts              WCA API client (competition search, WCIF fetch)
+src/                      the mobile app
+  types/wcif.ts           WCIF types                                          (shared)
+  api/wca.ts              WCA API client (competition search, WCIF fetch)     (shared)
   store/                  competition context — persistence + in-memory passwords
   navigation/             stack navigator (Home / Search / Viewer)
   screens/                HomeScreen, SearchScreen, ViewerScreen
   components/             PasswordModal
   utils/
-    schedule.ts           WCIF schedule -> ordered scramble sets
-    pdfMatching.ts        scramble PDF filename -> scramble set
+    schedule.ts           WCIF schedule -> ordered scramble sets              (shared)
+    pdfMatching.ts        scramble PDF filename -> scramble set               (shared)
+    eventNames.ts         event ids -> display names and PDF filename spellings (shared)
+    setLock.ts            when a closed set re-locks and needs its password again (shared)
     zipHandler.ts         ZIP picking, extraction, local PDF storage
-    eventNames.ts         event ids -> display names and PDF filename spellings
-    setLock.ts            when a closed set re-locks and needs its password again
 scripts/
   set-app-version.js      writes expo.version into app.json (used by the release workflow)
+desktop/                  the desktop app (Tauri 2 + React) — see desktop/README.md
 docs/
   PLAY_STORE.md           Google Play release checklist
+  specs/                  design specs for the desktop app (SPEC-001 to SPEC-005)
+.github/workflows/
+  release-apk.yml         Android APK on v* releases
+  play-submit.yml         Google Play submit, manually dispatched
+  desktop-ci.yml          desktop lint, typecheck, tests and cargo check on PRs
+  desktop-release.yml     desktop installers and AUR package on desktop-v* releases
 ```
 
 ## How PDF matching works
@@ -131,7 +170,8 @@ event name in the filename does not always match the app's display name (TNoodle
 keeps the alternative spellings per event id.
 
 If a competition's PDFs are named differently and some sets stay unmatched, that alias
-list and the filename regexes are the place to look.
+list and the filename regexes are the place to look. Both apps use the same code, so a
+fix there fixes both.
 
 ## Support
 
@@ -141,14 +181,15 @@ its development, you can do that here:
 
 - **[GitHub Sponsors](https://github.com/sponsors/maxidragon)**
 
-Everything in the app is free regardless, and the app itself never asks — there is no
+Everything in the apps is free regardless, and the apps themselves never ask — there is no
 donation prompt, no link, and nothing to dismiss. Asking happens here, on the repo, and
 nowhere else. ([Why](docs/PLAY_STORE.md#6-donations-are-not-in-the-app).)
 
 ## Privacy
 
-The app has no accounts, analytics, or ads. The only network calls are to the public WCA
-API; scramble PDFs and passwords never leave the device. See [PRIVACY.md](PRIVACY.md).
+Neither app has accounts, analytics, or ads. The only network calls are to the public WCA
+API; scramble PDFs and passwords never leave the device, and passwords are never written
+to disk. See [PRIVACY.md](PRIVACY.md).
 
 Scrambles Viewer is unofficial and not affiliated with or endorsed by the World Cube
 Association.

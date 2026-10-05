@@ -10,8 +10,10 @@ and Linux. Same product as the mobile app at the repository root — pick a WCA
 competition, load the TNoodle ZIP, step through scramble sets in schedule order, unlock
 each set with its passcode — for people whose device at the scrambling table is a laptop.
 
-**Current focus:** SPEC-001 to SPEC-005 are implemented; the next step is the first
-tagged desktop release (`desktop-v0.1.0`) and testing the installers on each platform.
+**Current focus:** SPEC-001 to SPEC-005 are implemented and the app is released
+(`desktop-v0.1.0` onwards, installers on GitHub releases and `scrambles-viewer-bin` on the
+AUR). Work now is fixes from running the installers on real machines, such as the
+WebKitGTK rendering fix on Linux.
 Read [SPEC-001](../docs/specs/SPEC-001-2026-09-18-desktop-app.md) and the area spec for
 whatever you are about to touch before writing code.
 
@@ -56,7 +58,8 @@ desktop/
 ## Docs index
 
 - `../docs/specs/README.md` — spec index and how to write one
-- `../README.md` — the mobile app; its "How PDF matching works" section applies here too
+- `../README.md` — both apps, downloads, the mobile build and release; its "How PDF
+  matching works" section applies here too
 - `../PRIVACY.md` — the promises this app must keep
 
 ## Working principles

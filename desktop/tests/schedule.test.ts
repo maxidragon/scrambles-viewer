@@ -59,6 +59,37 @@ describe("buildOrderedSets", () => {
     expect(buildOrderedSets(doc).map((s) => s.attemptNumber)).toEqual([1, 2, 3]);
   });
 
+  it("keeps linked rounds apart, each with its own sets and attempts", () => {
+    const doc = wcif(
+      [
+        event("333fm", [
+          { number: 1, format: "m", sets: 1, linkedTo: [1, 2] },
+          { number: 2, format: "m", sets: 1, linkedTo: [1, 2] },
+        ]),
+        event("333bf", [
+          { number: 1, format: "5", sets: 2, linkedTo: [1, 2] },
+          { number: 2, format: "5", sets: 1, linkedTo: [1, 2] },
+        ]),
+      ],
+      [
+        room("Main", [
+          activity("333fm-r1-a1", "2026-05-01T08:00:00Z"),
+          activity("333fm-r2-a1", "2026-05-01T09:00:00Z"),
+          activity("333bf-r1", "2026-05-01T10:00:00Z"),
+          activity("333bf-r2", "2026-05-01T11:00:00Z"),
+        ]),
+      ],
+    );
+
+    expect(buildOrderedSets(doc).map((s) => s.name)).toEqual([
+      "3x3x3 Fewest Moves Round 1 Set A Attempt 1",
+      "3x3x3 Fewest Moves Round 2 Set A Attempt 1",
+      "3x3x3 Blindfolded Round 1 Set A",
+      "3x3x3 Blindfolded Round 1 Set B",
+      "3x3x3 Blindfolded Round 2 Set A",
+    ]);
+  });
+
   it("uses the activity's set count when the round is missing from the events list", () => {
     const doc = wcif([], [room("Main", [activity("pyram-r1", "2026-05-01T09:00:00Z", { scrambleSetCount: 3 })])]);
 

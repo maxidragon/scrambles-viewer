@@ -37,7 +37,7 @@ The desktop builds are not code-signed, so macOS and Windows warn on first launc
 ## Features
 
 - **Competition search** — search the [WCA API](https://www.worldcubeassociation.org/api/v0)
-  and load a competition's public WCIF.
+  and load a competition's public WCIF (v2).
 - **Schedule-ordered set list** — rounds are ordered by their scheduled start time,
   grouped by round, and expanded into one entry per scramble set. Fewest Moves and
   Multi-Blind rounds get one entry per attempt per set.

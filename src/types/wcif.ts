@@ -36,9 +36,15 @@ export interface WCIFSchedule {
   venues: WCIFVenue[];
 }
 
+// "5" was added in WCIF v1.1 (best of 5), "h" in v2.0 (head-to-head).
+export type WCIFRoundFormat = '1' | '2' | '3' | '5' | 'a' | 'm' | 'h';
+
 export interface WCIFRound {
   id: string;
-  format: string;
+  format: WCIFRoundFormat;
+  // Dual rounds (WCIF v2): the ids of every round in the link, this one included.
+  // Each linked round still has its own scramble sets.
+  linkedRounds: string[] | null;
   scrambleSetCount: number;
   results: unknown[];
 }
@@ -49,6 +55,7 @@ export interface WCIFEvent {
 }
 
 export interface WCIF {
+  formatVersion: string;
   id: string;
   name: string;
   events: WCIFEvent[];

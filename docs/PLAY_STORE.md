@@ -12,6 +12,7 @@ be done by hand in the Console.
 | Unique version code on every upload | `eas.json`, `production.android.autoIncrement: true` (default is `false`, which causes duplicate-versionCode rejections) |
 | Target API level 36 | React Native 0.85 defaults to `targetSdk`/`compileSdk` 36 and `expo-build-properties` does not override it |
 | 16 KB page size support | `io.legere:pdfiumandroid:1.0.32` ships 16 KB-aligned `.so` files (`p_align = 0x4000` on arm64-v8a and x86_64; 32-bit ABIs are exempt) |
+| DEX obfuscation (Play flags anything under 25%) | `app.json`, `expo-build-properties` `android.enableMinifyInReleaseBuilds` |
 | No unnecessary storage permissions | `app.json`, `android.blockedPermissions` |
 | Privacy policy text | [`PRIVACY.md`](../PRIVACY.md) |
 | Adaptive + themed launcher icon | `app.json`, `android.adaptiveIcon` |
@@ -29,6 +30,23 @@ them with `tools:node="remove"` so the Play listing does not claim storage acces
 `DOWNLOAD_WITHOUT_NOTIFICATION` for its download manager, which this app does not use
 either. They are left alone because they are "normal" permissions that do not show up in
 the store listing, so blocking them is risk without benefit.
+
+### About R8
+
+No custom keep rules are needed. `pdfiumandroid` ships consumer rules for the classes its
+native code looks up, `AndroidPdfViewer` uses no reflection, and `react-native-pdf`
+detects a locked PDF from the exception message, which R8 leaves alone. If a PDF stops
+opening in a release build only, look here first.
+
+`enableShrinkResourcesInReleaseBuilds` stays off: Play does not ask for it, and resources
+looked up by name from JS could be stripped.
+
+### Edge-to-edge warning
+
+Play reports deprecated window APIs from anywhere in the bundle, and React Native's own
+`StatusBarModule` and `WindowUtil` use them (`setStatusBarColor` and friends). The warning
+carries no deadline and goes away only when those libraries move off the APIs, so it can
+stay after a release even though this app never calls them itself.
 
 ## Play Console setup
 

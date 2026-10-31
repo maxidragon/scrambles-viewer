@@ -37,7 +37,8 @@
         "expo-build-properties",
         {
           "android": {
-            "newArchEnabled": false
+            "newArchEnabled": false,
+            "enableMinifyInReleaseBuilds": true
           },
           "ios": {
             "newArchEnabled": false

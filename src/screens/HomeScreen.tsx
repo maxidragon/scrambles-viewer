@@ -14,7 +14,7 @@ import { useCompetition } from '../store/CompetitionContext';
 import { pickAndExtractZip, clearPdfs } from '../utils/zipHandler';
 import { fetchWCIF } from '../api/wca';
 import { ScrambleSet } from '../types/wcif';
-import { getVenueTimezone, formatTime } from '../utils/schedule';
+import { getVenueTimezone, formatTime, formatDay, getDayKey } from '../utils/schedule';
 import { RootStackParamList } from '../navigation';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -120,21 +120,28 @@ export function HomeScreen() {
   interface Section {
     title: string;
     time: string;
+    /** Set on the first round of each competition day, so its header carries the date. */
+    day?: string;
     data: (ScrambleSet & { globalIndex: number })[];
   }
 
   const sections: Section[] = [];
   if (sets.length > 0) {
     let currentCode = '';
+    let currentDayKey = '';
     let currentSection: Section | null = null;
 
     sets.forEach((set, idx) => {
       if (set.activityCode !== currentCode) {
         currentCode = set.activityCode;
         const roundName = set.name.replace(/ Set [A-Z](?: Attempt \d+)?$/, '');
+        const dayKey = getDayKey(set.startTime, timezone);
+        const isNewDay = dayKey !== currentDayKey;
+        currentDayKey = dayKey;
         currentSection = {
           title: roundName,
           time: formatTime(set.startTime, timezone),
+          day: isNewDay ? formatDay(set.startTime, timezone) : undefined,
           data: [],
         };
         sections.push(currentSection);
@@ -150,10 +157,7 @@ export function HomeScreen() {
       {/* Competition header */}
       <View style={styles.header}>
         {competitionName ? (
-          <>
-            <Text style={styles.compName}>{competitionName}</Text>
-            <Text style={styles.compId}>{competitionId}</Text>
-          </>
+          <Text style={styles.compName}>{competitionName}</Text>
         ) : (
           <Text style={styles.noComp}>No competition selected</Text>
         )}
@@ -238,9 +242,16 @@ export function HomeScreen() {
           keyExtractor={item => item.name}
           contentContainerStyle={styles.listContent}
           renderSectionHeader={({ section }) => (
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <Text style={styles.sectionTime}>{section.time}</Text>
+            <View>
+              {section.day && (
+                <View style={styles.dayHeader}>
+                  <Text style={styles.dayTitle}>{section.day}</Text>
+                </View>
+              )}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={styles.sectionTime}>{section.time}</Text>
+              </View>
             </View>
           )}
           renderItem={({ item }) => (
@@ -291,8 +302,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  compName: { fontSize: 17, fontWeight: '700', color: '#1a1a1a', marginBottom: 2 },
-  compId: { fontSize: 12, color: '#888' },
+  compName: { fontSize: 17, fontWeight: '700', color: '#1a1a1a' },
   noComp: { fontSize: 15, color: '#999', fontStyle: 'italic' },
   actions: { flexDirection: 'row', padding: 10, gap: 8, flexWrap: 'wrap' },
   btn: {
@@ -326,6 +336,12 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 13, color: '#3949ab', fontWeight: '500' },
   viewAllLink: { fontSize: 13, color: '#003087', fontWeight: '600' },
   listContent: { paddingBottom: 20 },
+  dayHeader: {
+    backgroundColor: '#003087',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  dayTitle: { fontSize: 13, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

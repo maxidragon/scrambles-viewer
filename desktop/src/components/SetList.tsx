@@ -14,6 +14,7 @@ export function SetList({ sets, groups, currentIndex, unlockedSetNames, onOpen }
     <div className="set-list">
       {groups.map((group) => (
         <section key={group.title} className="round-group">
+          {group.day !== undefined && <h2 className="day-header">{group.day}</h2>}
           <header className="round-header">
             <span className="round-title">{group.title}</span>
             <span className="round-time">{group.time}</span>

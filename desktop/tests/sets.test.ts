@@ -30,8 +30,23 @@ describe("groupSetsByRound", () => {
     ];
 
     expect(groupSetsByRound(sets, "UTC")).toEqual([
-      { title: "2x2x2 Round 1", time: "08:00", setIndexes: [0, 1] },
+      { title: "2x2x2 Round 1", time: "08:00", day: "Friday, May 1", setIndexes: [0, 1] },
       { title: "3x3x3 Multi-Blind Round 1", time: "09:30", setIndexes: [2] },
+    ]);
+  });
+
+  it("puts a day heading on the first round of each venue-local day", () => {
+    const sets = [
+      set("2x2x2 Round 1 Set A", "222-r1", "2026-05-01T16:00:00Z"),
+      set("3x3x3 Round 1 Set A", "333-r1", "2026-05-01T21:30:00Z"),
+      set("4x4x4 Round 1 Set A", "444-r1", "2026-05-02T15:00:00Z"),
+    ];
+
+    // 21:30 UTC is still May 1 in New York; a UTC grouping would move it to the next day.
+    expect(groupSetsByRound(sets, "America/New_York").map((g) => g.day)).toEqual([
+      "Friday, May 1",
+      undefined,
+      "Saturday, May 2",
     ]);
   });
 });

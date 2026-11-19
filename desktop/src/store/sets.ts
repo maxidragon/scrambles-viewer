@@ -1,5 +1,5 @@
 import type { ScrambleSet } from "@shared/types/wcif";
-import { formatTime } from "@shared/utils/schedule";
+import { formatDay, formatTime, getDayKey } from "@shared/utils/schedule";
 
 /**
  * Sync rule shared with mobile: a fresh set list from the WCIF keeps the PDF of any
@@ -20,21 +20,32 @@ export function withoutPdfs(sets: ScrambleSet[]): ScrambleSet[] {
 export interface RoundGroup {
   title: string;
   time: string;
+  /** Set on the first round of each competition day, e.g. "Saturday, May 2". */
+  day?: string;
   /** Indexes into the full set list, so the viewer can be opened at that set. */
   setIndexes: number[];
 }
 
 const SET_SUFFIX_RE = / Set [A-Z](?: Attempt \d+)?$/;
 
-/** Consecutive sets of the same round become one group, in list order. */
+/**
+ * Consecutive sets of the same round become one group, in list order. The first group of
+ * each venue-local day carries the day heading.
+ */
 export function groupSetsByRound(sets: ScrambleSet[], timezone: string): RoundGroup[] {
   const groups: RoundGroup[] = [];
   let current: RoundGroup | null = null;
   let currentCode: string | null = null;
+  let currentDayKey: string | null = null;
   sets.forEach((set, index) => {
     if (current === null || set.activityCode !== currentCode) {
       currentCode = set.activityCode;
       current = { title: set.name.replace(SET_SUFFIX_RE, ""), time: formatTime(set.startTime, timezone), setIndexes: [] };
+      const dayKey = getDayKey(set.startTime, timezone);
+      if (dayKey !== currentDayKey) {
+        currentDayKey = dayKey;
+        current.day = formatDay(set.startTime, timezone);
+      }
       groups.push(current);
     }
     current.setIndexes.push(index);

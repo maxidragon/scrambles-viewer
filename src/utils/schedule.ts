@@ -141,3 +141,23 @@ export function formatTime(isoTime: string, timezone: string): string {
     });
   }
 }
+
+/** Calendar date of an instant in the venue's timezone, as YYYY-MM-DD; groups sets by day. */
+export function getDayKey(isoTime: string, timezone: string): string {
+  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+  try {
+    return new Date(isoTime).toLocaleDateString('en-CA', { ...options, timeZone: timezone });
+  } catch {
+    return new Date(isoTime).toLocaleDateString('en-CA', options);
+  }
+}
+
+/** Day heading for the set list, e.g. "Saturday, May 2". */
+export function formatDay(isoTime: string, timezone: string): string {
+  const options: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+  try {
+    return new Date(isoTime).toLocaleDateString('en-US', { ...options, timeZone: timezone });
+  } catch {
+    return new Date(isoTime).toLocaleDateString('en-US', options);
+  }
+}

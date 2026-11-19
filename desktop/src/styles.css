@@ -36,7 +36,6 @@ input { font: inherit; }
 /* Sidebar header and actions */
 .comp-header { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
 .comp-name { font-weight: 700; font-size: 16px; }
-.comp-id { font-size: 12px; color: var(--muted); }
 .comp-none { color: var(--muted); font-style: italic; }
 .actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
 .btn {
@@ -75,6 +74,10 @@ input { font: inherit; }
 
 /* Set list */
 .set-list { flex: 1; overflow-y: auto; }
+.day-header {
+  margin: 0; padding: 6px 16px; background: var(--navy); color: #fff;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
+}
 .round-header {
   position: sticky; top: 0; z-index: 1;
   display: flex; justify-content: space-between; align-items: baseline;

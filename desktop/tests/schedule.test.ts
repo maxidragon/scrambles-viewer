@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildOrderedSets, formatTime, getVenueTimezone } from "@shared/utils/schedule";
+import { buildOrderedSets, formatDay, formatTime, getDayKey, getVenueTimezone } from "@shared/utils/schedule";
 import { activity, event, room, wcif } from "./fixtures/wcif";
 
 describe("buildOrderedSets", () => {
@@ -114,5 +114,13 @@ describe("venue time", () => {
 
   it("falls back to UTC when the schedule has no venue", () => {
     expect(getVenueTimezone(wcif([], []))).toBe("UTC");
+  });
+});
+
+describe("getDayKey and formatDay", () => {
+  it("use the venue timezone, not UTC", () => {
+    expect(getDayKey("2026-05-02T02:00:00Z", "America/Los_Angeles")).toBe("2026-05-01");
+    expect(formatDay("2026-05-02T02:00:00Z", "America/Los_Angeles")).toBe("Friday, May 1");
+    expect(getDayKey("2026-05-02T02:00:00Z", "UTC")).toBe("2026-05-02");
   });
 });

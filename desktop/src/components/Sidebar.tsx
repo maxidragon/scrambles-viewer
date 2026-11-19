@@ -76,10 +76,7 @@ export function Sidebar({ currentIndex, onOpenSet, zipImport, unlockedSetNames, 
         {competitionName === null ? (
           <span className="comp-none">No competition selected</span>
         ) : (
-          <>
-            <span className="comp-name">{competitionName}</span>
-            <span className="comp-id">{competitionId}</span>
-          </>
+          <span className="comp-name">{competitionName}</span>
         )}
       </header>
 

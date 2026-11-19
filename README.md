@@ -39,8 +39,9 @@ The desktop builds are not code-signed, so macOS and Windows warn on first launc
 - **Competition search** — search the [WCA API](https://www.worldcubeassociation.org/api/v0)
   and load a competition's public WCIF (v2).
 - **Schedule-ordered set list** — rounds are ordered by their scheduled start time,
-  grouped by round, and expanded into one entry per scramble set. Fewest Moves and
-  Multi-Blind rounds get one entry per attempt per set.
+  divided by competition day (in the venue's timezone), grouped by round, and expanded
+  into one entry per scramble set. Fewest Moves and Multi-Blind rounds get one entry per
+  attempt per set.
 - **ZIP import** — pick the TNoodle scrambles ZIP; the PDFs inside are matched to the
   schedule by filename and extracted to app storage. The app reports how many of the
   PDFs it matched.

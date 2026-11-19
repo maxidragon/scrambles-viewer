@@ -46,10 +46,10 @@ truth again.
 
 ## Proposed Solution
 
-One home view with three regions: a header (competition name and id, or "No competition
+One home view with three regions: a header (competition name, or "No competition
 selected"), an action row (Search, Sync, Load ZIP, Clear PDFs, Reset — the last four only
-once a competition is loaded), and the grouped set list with the "n/m PDFs loaded" line
-above it. Search opens as a panel that takes focus, filters as you type with the same
+once a competition is loaded), and the set list — divided by venue-local day, then
+grouped by round — with the "n/m PDFs loaded" line above it. Search opens as a panel that takes focus, filters as you type with the same
 debounce as mobile, and closes on selection or Escape.
 
 Persistence uses Tauri's store plugin, one store file in the app data directory holding
@@ -113,3 +113,4 @@ the public WCIF endpoint, called with the shared client. No new contracts.
 | Date | Change |
 |------|--------|
 | 2026-09-18 | Initial draft |
+| 2026-11-19 | Set list divided by competition day; competition id dropped from the header (both apps) |

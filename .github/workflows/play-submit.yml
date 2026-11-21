@@ -1,9 +1,10 @@
 name: Build AAB and submit to Google Play
 
-# Manual only — a Play release should never happen as a side effect of pushing a tag.
+# Manual fallback. Every published v* release already submits to the closed testing
+# track from release-apk.yml; use this to re-submit without cutting a new release.
 # Builds whatever version app.json currently holds, which the release workflow keeps in
-# sync with the latest tag, and uploads it to the internal track. Promoting from internal
-# to closed/open/production testing is done in the Play Console.
+# sync with the latest tag. Promoting from closed testing to open testing or production
+# is done in the Play Console.
 on:
   workflow_dispatch:
 

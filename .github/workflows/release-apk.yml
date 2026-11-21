@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout release tag
         uses: actions/checkout@v4
@@ -96,3 +98,54 @@ jobs:
           git commit -m "chore: set app version to $VERSION [skip ci]"
           git pull --rebase origin "$BRANCH"
           git push origin "HEAD:$BRANCH"
+
+  play-submit:
+    # Every v* release goes to the Google Play closed testing track (eas.json submit
+    # profile, track "alpha"); pre-releases stay off Play. Runs after the APK job so
+    # the two EAS builds don't race on the remotely incremented versionCode.
+    # play-submit.yml is the manual fallback for re-submitting without a new release.
+    needs: build
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: 23.2.0
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Set app version from release tag
+        run: node scripts/set-app-version.js "${{ needs.build.outputs.version }}"
+
+      # eas.json points at this path; in CI the key comes from a secret, not from disk.
+      - name: Write service account key
+        env:
+          KEY_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$KEY_JSON" ]; then
+            echo "::error::GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret is not set"
+            exit 1
+          fi
+          printf '%s' "$KEY_JSON" > google-play-service-account.json
+
+      # One command so the build that gets submitted is definitely the one just built.
+      - name: Build AAB and submit
+        run: |
+          eas build --platform android --profile production \
+            --auto-submit --non-interactive --wait
+
+      - name: Remove service account key
+        if: always()
+        run: rm -f google-play-service-account.json

@@ -78,26 +78,28 @@ npx eas-cli credentials
 
 ```bash
 npx eas-cli build --platform android --profile production
-npx eas-cli submit --platform android --profile production   # internal track
+npx eas-cli submit --platform android --profile production   # closed testing track
 ```
 
 EAS can create the *first* release itself; no manual AAB upload is needed.
 
-The `production` submit profile targets the **internal** track, which is also what a
-bare `eas submit` does by default. Promoting a release from internal to closed, open, or
-production testing is done in the Play Console, not by re-submitting the AAB.
+The `production` submit profile targets the **closed testing** track (`alpha`, the API
+name of Play's default closed track) with `releaseStatus: completed`, so a submitted
+build goes out to testers as soon as Google's review passes. Promoting a release to open
+testing or production is done in the Play Console, not by re-submitting the AAB.
 
-For CI there is `.github/workflows/play-submit.yml`. It is `workflow_dispatch` only, so a
-Play upload can never happen as a side effect of pushing a tag, and it builds and submits
-in a single `eas build --auto-submit` call so the binary submitted is the one just built.
-It needs two repository secrets:
+In CI, publishing a GitHub release tagged `v1.2.3` submits automatically: the
+`play-submit` job in `.github/workflows/release-apk.yml` runs after the APK job, sets the
+version from the tag, and builds and submits in a single `eas build --auto-submit` call
+so the binary submitted is the one just built. Releases marked as pre-releases are not
+submitted. `.github/workflows/play-submit.yml` does the same on manual dispatch, for
+re-submitting without cutting a new release. Both need two repository secrets:
 
 - `EXPO_TOKEN` — already used by the APK release workflow;
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` — the full contents of the service account JSON key.
 
-It builds whatever version `app.json` holds, which `release-apk.yml` keeps in sync with
-the latest release tag. So the order for a versioned Play release is: publish the GitHub
-release first, then dispatch this workflow.
+The manual workflow builds whatever version `app.json` holds, which `release-apk.yml`
+keeps in sync with the latest release tag.
 
 ### 4. Store listing assets
 
@@ -175,7 +177,7 @@ Association.
 
 1. Register the account and get the closed test running with 12 testers — the 14-day
    clock only starts once the release is live and 12 testers have opted in.
-2. Build and submit to the internal track, then promote to closed testing.
+2. Publish a GitHub release; CI builds it and submits it to closed testing.
 3. Prepare listing assets and declarations while the 14 days run.
 4. Apply for production access, then promote the release.
 

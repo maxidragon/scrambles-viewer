@@ -96,7 +96,9 @@ Publishing a GitHub release (tagged `v1.2.3`) runs `.github/workflows/release-ap
 1. reads the version from the tag and writes it to `expo.version`,
 2. builds the APK on EAS and attaches it to the release,
 3. commits the same version back to the default branch, so `app.json` in the repo
-   always reflects the latest release.
+   always reflects the latest release,
+4. unless the release is marked as a pre-release, builds an App Bundle and submits it to
+   the Google Play closed testing track.
 
 The tag is the single source of truth for the user-facing version — you don't need to
 bump `app.json` by hand before tagging. `android.versionCode` is not stored in the repo
@@ -111,13 +113,15 @@ node scripts/set-app-version.js 1.2.3
 #### Google Play
 
 The `production` profile builds an App Bundle and `eas.json` has a matching submit
-profile pointing at the internal track:
+profile pointing at the closed testing track (`alpha`):
 
 ```bash
 npx eas-cli build --platform android --profile production --auto-submit
 ```
 
-`.github/workflows/play-submit.yml` does the same from CI, manually dispatched.
+Every published `v*` release does this from CI (see above);
+`.github/workflows/play-submit.yml` does the same on manual dispatch, for re-submitting
+without a new release.
 [docs/PLAY_STORE.md](docs/PLAY_STORE.md) covers the rest — what the repo already
 satisfies, and the Play Console setup, listing assets, and declarations that are left.
 
@@ -148,8 +152,8 @@ docs/
   PLAY_STORE.md           Google Play release checklist
   specs/                  design specs for the desktop app (SPEC-001 to SPEC-005)
 .github/workflows/
-  release-apk.yml         Android APK on v* releases
-  play-submit.yml         Google Play submit, manually dispatched
+  release-apk.yml         Android APK and Google Play closed testing on v* releases
+  play-submit.yml         Google Play submit, manually dispatched (fallback)
   desktop-ci.yml          desktop lint, typecheck, tests and cargo check on PRs
   desktop-release.yml     desktop installers and AUR package on desktop-v* releases
 ```
